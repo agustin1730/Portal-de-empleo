@@ -4,6 +4,13 @@ export {statuses} from "./job-data";
 type Data=Record<string,any>;
 function fail(error:unknown){if(error){console.error("Job storage request failed");throw new Error("No pudimos guardar o leer los datos. Verificá la conexión y la migración de Supabase.");}}
 function validDate(x:unknown){if(typeof x!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(x))return null;const d=new Date(x+"T00:00:00Z");return Number.isFinite(d.valueOf())&&d.toISOString().slice(0,10)===x?x:null;}
+export async function deleteJob(owner:string,id:string){
+ if(typeof id!=="string"||!/^[a-zA-Z0-9_-]{1,80}$/.test(id))throw new Error("Postulación no válida.");
+ const db=await createClient();
+ const {data,error}=await db.from("jobs").delete().eq("owner_id",owner).eq("id",id).in("status",["postulado","contactado","entrevista","oferta","descartado"]).select("id").single();
+ fail(error);if(!data)throw new Error("No se encontró la postulación.");
+ return {id:data.id,deleted:true};
+}
 export async function listJobs(owner:string){
  const db=await createClient();const rows:Data[]=[];
  for(let start=0;;start+=500){

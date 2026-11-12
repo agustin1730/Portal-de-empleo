@@ -27,7 +27,11 @@ test("Postgres enforces ownership and imports preserve application decisions",as
   await db.exec(`set request.jwt.claim.sub='${b}';`);
   assert.equal((await db.query("select * from public.jobs")).rows.length,0);
   assert.equal((await db.query("update public.jobs set notes='bad' where id='job-1' returning id")).rows.length,0);
+  assert.equal((await db.query("delete from public.jobs where id='job-1' returning id")).rows.length,0);
   await assert.rejects(()=>db.query("insert into public.jobs(owner_id,id,payload) values($1,'bad','{}')",[a]));
+  await db.exec(`set request.jwt.claim.sub='${a}';`);
+  assert.equal((await db.query("delete from public.jobs where id='job-1' returning id")).rows.length,1);
+  assert.equal((await db.query("select * from public.jobs")).rows.length,0);
   await db.exec("reset role;set role anon;");
   await assert.rejects(()=>db.query("select * from public.jobs"));
   await assert.rejects(()=>db.query("select public.import_jobs('[]'::jsonb)"));
