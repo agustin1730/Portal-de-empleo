@@ -18,14 +18,15 @@ The app can track any career direction. Personal display names are loaded from t
 1. Import this repository into a Vercel project. Framework: Next.js. Build: npm run build.
 2. Create a Supabase project in your account (through Vercel Marketplace or Supabase). Review the plan before provisioning; this repository does not purchase resources.
 3. Run the SQL files in supabase/migrations/ in filename order, once each in Supabase SQL Editor, or apply it with the Supabase migration tooling. It creates the jobs table, owner-only RLS policies and an atomic import function.
-4. In Supabase Authentication, create your owner user with an email and a strong password, with Auto Confirm User enabled. Use the provider's secure UI; never commit the password.
+4. In Supabase Authentication → URL Configuration set Site URL to your production origin and allow the exact callback URLs listed below. The website provides Crear mi acceso, email confirmation, Olvidé mi contraseña and password recovery; the owner creates their own password on the website.
 5. In Vercel Environment Variables add:
 
 | Variable | Value |
 | --- | --- |
 | NEXT_PUBLIC_SUPABASE_URL | Your Supabase project URL |
 | NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY | Your Supabase publishable key (legacy anon key also works) |
-| OWNER_EMAIL | The email of your owner user |
+| OWNER_EMAIL | The email allowed to create/access this private tracker |
+| SITE_URL | Your production origin, such as https://your-project.vercel.app |
 
 6. Redeploy, open the website, and sign in with that owner account.
 
@@ -44,7 +45,7 @@ Requires Node.js 22+.
     npm ci
     cp .env.example .env.local
 
-Fill the three environment values locally. Do not commit .env.local. Then:
+Fill the four environment values locally. Do not commit .env.local. Then:
 
     npm run typecheck
     npm test
@@ -73,3 +74,12 @@ The previous OpenAI Sites/Cloudflare hosting code and private starter dataset ar
 ## Verification
 
 TypeScript, input-normalization tests, the production build and SQL/RLS tests against embedded Postgres can run without a configured Supabase project. The SQL tests verify that reimports preserve notes/stages/dates, duplicate imports are idempotent, other users cannot read or alter records, and anonymous callers cannot read or import records. Full login, RLS, persistence and migration checks require the linked database and owner user. Do not describe a successful build as a completed data migration.
+
+## Email confirmation and recovery
+
+Supabase Site URL must match SITE_URL. Allow these exact Redirect URLs in Supabase Authentication → URL Configuration:
+
+- SITE_URL/auth/callback
+- SITE_URL/auth/callback?next=/password
+
+The default Supabase confirmation email works with the PKCE callback. Open the email link in the browser used to request it. The callback also supports signup/recovery token_hash links if customized templates are configured. External or arbitrary next destinations are rejected. Email delivery requires Supabase's built-in sender or a configured SMTP provider. Signup and recovery are restricted to OWNER_EMAIL; verification remains required. Recovery signs the user out after saving their new password. No passwords or tokens are logged or committed.
