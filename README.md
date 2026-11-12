@@ -11,7 +11,7 @@ A personal job tracker with Spanish UI, built with Next.js, React and Supabase. 
 - Supabase authentication, a server-side owner email allowlist and database row-level security.
 - A compatible MCP endpoint at /mcp exposing list_jobs, import_jobs and update_job.
 
-The app can track any career direction; its initial labels are oriented toward Agustín's personal search. Fit scores are estimates of documented compatibility, never hiring probabilities. No applications are submitted automatically.
+The app can track any career direction. Personal display names are loaded from the signed-in account, not committed to the repository. Fit scores are estimates of documented compatibility, never hiring probabilities. No applications are submitted automatically.
 
 ## Setup
 
