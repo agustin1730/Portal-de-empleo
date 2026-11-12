@@ -32,6 +32,20 @@ export async function updateJob(owner:string,id:string,patch:Data){
  if(patch.notes!==undefined&&(typeof patch.notes!=="string"||patch.notes.length>12000))throw new Error("La nota debe tener hasta 12.000 caracteres.");
  if(patch.applied_at!==undefined&&patch.applied_at!==""&&patch.applied_at!==null&&!validDate(patch.applied_at))throw new Error("Fecha no válida.");
  const db=await createClient(),changes:Data={updated_at:new Date().toISOString()};
+ const payloadFields={company:200,title:250,location_label:200,contact:200,email:254,phone:80};
+ const payloadPatch:Data={};
+ for(const [field,limit] of Object.entries(payloadFields)){
+  if(patch[field]===undefined)continue;
+  if(typeof patch[field]!=="string"||patch[field].length>limit)throw new Error("Datos de contacto o postulación no válidos.");
+  if(["company","title","location_label"].includes(field)&&!patch[field].trim())throw new Error("Completá compañía, puesto y ubicación.");
+  payloadPatch[field]=patch[field].trim();
+ }
+ if(payloadPatch.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payloadPatch.email))throw new Error("Correo electrónico no válido.");
+ if(Object.keys(payloadPatch).length){
+  const {data,error}=await db.from("jobs").select("payload").eq("owner_id",owner).eq("id",id).single();
+  fail(error);if(!data)throw new Error("No se encontró el empleo.");
+  changes.payload={...data.payload,...payloadPatch};
+ }
  if(patch.status!==undefined)changes.status=patch.status;
  if(patch.notes!==undefined)changes.notes=patch.notes;
  if(patch.applied_at!==undefined)changes.applied_at=validDate(patch.applied_at);
@@ -41,5 +55,5 @@ export async function updateJob(owner:string,id:string,patch:Data){
   if(data.status!=="postulado"&&!data.applied_at)changes.applied_at=new Date().toISOString().slice(0,10);
  }
  const {data,error}=await db.from("jobs").update(changes).eq("owner_id",owner).eq("id",id).select("id,status,notes,applied_at").single();
- fail(error);if(!data)throw new Error("No se encontró el empleo.");return data;
+ fail(error);if(!data)throw new Error("No se encontró el empleo.");return {...payloadPatch,...data};
 }

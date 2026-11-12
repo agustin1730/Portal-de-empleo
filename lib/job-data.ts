@@ -1,4 +1,4 @@
-export const statuses = ["pendiente","guardado","por_postular","postulado","entrevista","oferta","descartado"] as const;
+export const statuses = ["pendiente","guardado","por_postular","postulado","contactado","entrevista","oferta","descartado"] as const;
 type Data = Record<string, any>;
 const bounded=(x:any,n=2000)=>typeof x==="string"?x.slice(0,n):"";
 function safeUrl(x:any){if(!x)return "";try{const u=new URL(x);return ["https:","http:"].includes(u.protocol)?u.href:"";}catch{return "";}}
@@ -21,5 +21,6 @@ export async function normalizeJob(x:Data){
   matches:arr(x.matches),gaps:arr(x.gaps),next_action:bounded(x.next_action,500)||"Revisar el aviso.",
   key_requirement:bounded(x.key_requirement,500),reason:bounded(x.reason,800),
   source_trash:!!x.source_trash,received_at:bounded(x.received_at,80),source_id:bounded(x.source_id,100),
+  contact:bounded(x.contact,200),email:bounded(x.email,254),phone:bounded(x.phone,80),
   application_evidence:bounded(x.application_evidence,500),other_alert_emails:arr(x.other_alert_emails).map(safeUrl).filter(Boolean)};
 }

@@ -6,7 +6,9 @@ A personal job tracker with Spanish UI, built with Next.js, React and Supabase. 
 
 - Job cards with portal branding, original vacancy links, optional verified company logos and Gmail source links.
 - Search, portal and work-mode filters, fit scores and recommendations.
-- Saved stages, notes and application dates persisted in Postgres.
+- CRM board and table with Applied, Contacted, Interview, Offer and Rejected stages.
+- Company, position, location, application dates, contact person, email, phone and notes persisted in Postgres.
+- Previous saved and to-apply records remain available under Opportunities.
 - JSON import/export. Analysis updates preserve existing workflow stages, notes and application dates.
 - Supabase authentication, a server-side owner email allowlist and database row-level security.
 - A compatible MCP endpoint at /mcp exposing list_jobs, import_jobs and update_job.

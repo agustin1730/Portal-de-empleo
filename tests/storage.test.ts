@@ -8,6 +8,7 @@ test("Postgres enforces ownership and imports preserve application decisions",as
  try{
   await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);insert into auth.users values ('${a}'),('${b}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated;grant execute on function auth.uid() to authenticated;`);
   await db.exec(await readFile(new URL("../supabase/migrations/202611120001_jobs.sql",import.meta.url),"utf8"));
+  await db.exec(await readFile(new URL("../supabase/migrations/20261112200430_add_crm_contacted_stage.sql",import.meta.url),"utf8"));
   await db.exec(`set role authenticated;set request.jwt.claim.sub='${a}';`);
   const record={id:"job-1",payload:{title:"Vendedor",company:"QA"},status:"postulado",notes:"Keep this decision",applied_at:"2026-11-10"};
   const first=await db.query("select public.import_jobs($1::jsonb) as result",[JSON.stringify([record])]);
@@ -19,6 +20,10 @@ test("Postgres enforces ownership and imports preserve application decisions",as
   assert.equal(saved.rows[0].status,"postulado");assert.equal(saved.rows[0].notes,"Keep this decision");
   assert.equal(saved.rows[0].applied_at_text,"2026-11-10");assert.equal(saved.rows[0].payload.company,"QA");
   assert.equal(saved.rows[0].payload.title,"Vendedor actualizado");
+  await db.query("update public.jobs set status='contactado',payload=payload||$1::jsonb where id='job-1'",[JSON.stringify({contact:"Recruiter",email:"recruiter@example.com",phone:"+54 11 5555 0100"})]);
+  await db.query("select public.import_jobs($1::jsonb)",[JSON.stringify([{...next,payload:{title:"New analysis"}}])]);
+  const crm=(await db.query("select status,payload,notes from public.jobs where id='job-1'")).rows[0];
+  assert.equal(crm.status,"contactado");assert.equal(crm.payload.contact,"Recruiter");assert.equal(crm.payload.email,"recruiter@example.com");assert.equal(crm.payload.phone,"+54 11 5555 0100");assert.equal(crm.notes,"Keep this decision");
   await db.exec(`set request.jwt.claim.sub='${b}';`);
   assert.equal((await db.query("select * from public.jobs")).rows.length,0);
   assert.equal((await db.query("update public.jobs set notes='bad' where id='job-1' returning id")).rows.length,0);
