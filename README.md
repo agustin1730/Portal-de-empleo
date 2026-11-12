@@ -17,8 +17,8 @@ The app can track any career direction. Personal display names are loaded from t
 
 1. Import this repository into a Vercel project. Framework: Next.js. Build: npm run build.
 2. Create a Supabase project in your account (through Vercel Marketplace or Supabase). Review the plan before provisioning; this repository does not purchase resources.
-3. Run supabase/migrations/202611120001_jobs.sql once in Supabase SQL Editor, or apply it with the Supabase migration tooling. It creates the jobs table, owner-only RLS policies and an atomic import function.
-4. In Supabase Authentication, create your owner user with an email and a strong password. Use the provider's secure UI; never commit the password.
+3. Run the SQL files in supabase/migrations/ in filename order, once each in Supabase SQL Editor, or apply it with the Supabase migration tooling. It creates the jobs table, owner-only RLS policies and an atomic import function.
+4. In Supabase Authentication, create your owner user with an email and a strong password, with Auto Confirm User enabled. Use the provider's secure UI; never commit the password.
 5. In Vercel Environment Variables add:
 
 | Variable | Value |
@@ -33,7 +33,7 @@ Without those variables, the app shows an honest setup screen. It does not prete
 
 ## Transfer your existing records
 
-On the existing private tracker, choose Exportar. On this app, after signing in, choose Importar and select that JSON file. A new database starts empty. The import carries over notes, stages, application dates and source links; later imports update analyses without overwriting existing decisions.
+On the existing private tracker, choose Exportar. On this app, after signing in, choose Importar and select that JSON file. A new database starts empty unless a private owner import has been staged by its administrator. Staged records remain inaccessible through the public API and move into jobs only when the matching owner email is confirmed. The trigger runs once and preserves any existing records; it never creates a password or changes credentials. The import carries over notes, stages, application dates and source links; later imports update analyses without overwriting existing decisions.
 
 Your job records and email links must stay outside this public repository. private-data/, environment files, build output and credentials are ignored. Exported JSON files belong in private storage, never in Git.
 
