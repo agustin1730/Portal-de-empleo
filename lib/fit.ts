@@ -3,7 +3,7 @@ export type Category="experience"|"skills"|"education";
 export type Requirement={category:Category;text:string;required:boolean;years:number|null};
 export type Assessment={description:string;complete:boolean;requirements:Requirement[]};
 export type Evidence={requirement:Requirement;status:"matched"|"gap"|"unknown";profileSource:string;explanation:string};
-export type Fit={score:number|null;label:string;reason:string;provisional:boolean;profileUpdatedAt:string|null;source:string;breakdown:{category:Category;label:string;weight:number;points:number|null;count:number}[];evidence:Evidence[];nextSteps:string[];version:string};
+export type Fit={score:number|null;label:string;reason:string;missing:"profile"|"requirements"|null;provisional:boolean;profileUpdatedAt:string|null;source:string;breakdown:{category:Category;label:string;weight:number;points:number|null;count:number}[];evidence:Evidence[];nextSteps:string[];version:string};
 export const categoryNames:Record<Category,string>={experience:"Experiencia relevante",skills:"Habilidades",education:"Educación"};
 const weights:Record<Category,number>={experience:40,skills:40,education:20};
 export const fold=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9+#]+/g," ").trim();
@@ -89,13 +89,18 @@ function evaluateRequirement(r:Requirement,profile:Profile,now:Date):Evidence{
  return result("unknown","Mi perfil · Habilidades y experiencia","No documentada. Esto no significa que no tengas esta habilidad.");
 }
 type FitJob={assessment?:Assessment|null;description?:string;key_requirement?:string;summary?:string};
+export function jobSourceText(job:FitJob){
+ if(job.assessment)return job.assessment.description;
+ const parts=[job.description,job.key_requirement,job.summary].filter((s):s is string=>typeof s==="string"&&!!s.trim()&&!/^(?:Importado desde una alerta de empleo\.|Descripción pendiente de revisión\.)/i.test(s.trim())).map(s=>s.trim());
+ return [...new Set(parts)].join("\n");
+}
 export function assessFit(job:FitJob,profile:Profile|null,profileUpdatedAt:string|null=null,now=new Date()):Fit{
  const explicit=job.assessment;
  const source=explicit?.complete?"Aviso completo y requisitos revisados":"Texto parcial del aviso";
- const requirements=explicit?explicit.requirements:detectRequirements(job.description||job.key_requirement||"");
- const result:Fit={score:null,label:"Sin evaluar",reason:"",provisional:!explicit?.complete,profileUpdatedAt,source,breakdown:[],evidence:[],nextSteps:[],version:"rules-v1"};
- if(!profile||!(profile.experience.length||profile.skills.length||profile.personalSkills.length||profile.education.length||profile.languages.length)){result.reason="Completá tu experiencia, habilidades o educación en Mi perfil. Adjuntar el PDF por sí solo todavía no completa estos datos.";result.nextSteps=["Completar Mi perfil."];return result;}
- if(requirements.length<2){result.reason="Faltan requisitos comparables del aviso. Pegá el texto y revisá al menos dos requisitos.";result.nextSteps=["Completar aviso y requisitos."];return result;}
+ const text=jobSourceText(job),requirements=explicit?explicit.requirements:detectRequirements(text);
+ const result:Fit={score:null,label:"Sin evaluar",reason:"",missing:null,provisional:!explicit?.complete,profileUpdatedAt,source,breakdown:[],evidence:[],nextSteps:[],version:"rules-v1"};
+ if(!profile||!(profile.experience.length||profile.skills.length||profile.personalSkills.length||profile.education.length||profile.languages.length)){result.missing="profile";result.label="Falta perfil";result.reason="Completá tu experiencia, habilidades o educación en Mi perfil. Si importás tu CV, revisá y guardá el borrador para usar esos datos.";result.nextSteps=["Completar Mi perfil."];return result;}
+ if(requirements.length<2){result.missing="requirements";result.label=text?"Faltan requisitos":"Falta aviso";result.reason=text?`Se detectaron ${requirements.length} de al menos 2 requisitos necesarios. Revisá y completá los requisitos del aviso.`:"Tu perfil está disponible, pero este empleo solo tiene datos básicos de la alerta. Agregá la descripción y los requisitos publicados para calcular la afinidad.";result.nextSteps=["Abrir el aviso original y copiar su descripción.","Pegar el texto, detectar y revisar al menos dos requisitos; guardar para calcular la afinidad."];return result;}
  const evidence=requirements.map(r=>evaluateRequirement(r,profile,now));result.evidence=evidence;
  const categories=(Object.keys(weights) as Category[]).filter(category=>requirements.some(r=>r.category===category));
  const sum=categories.reduce((total,c)=>total+weights[c],0);

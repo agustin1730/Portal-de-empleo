@@ -1,12 +1,29 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {assessFit,detectRequirements,normalizeAssessment,type Requirement} from "../lib/fit.ts";
+import {assessFit,detectRequirements,normalizeAssessment,jobSourceText,type Requirement} from "../lib/fit.ts";
 import {emptyProfile} from "../lib/profile-data.ts";
 import {normalizeJob} from "../lib/job-data.ts";
 const now=new Date("2026-11-13T12:00:00Z");
 const profile={...emptyProfile,experience:[{role:"Ventas",company:"Empresa",start:"2023-01",end:"2025-12",description:"Atención al cliente. Manejo de Google Ads."}],skills:["Google Ads","Excel"],education:[{title:"Secundario completo",institution:"Escuela",start:"2017-01",end:"2022-12"}],languages:[{name:"Inglés",level:"Intermedio"}]};
 const req=(category:Requirement["category"],text:string,years:number|null=null,required=false):Requirement=>({category,text,years,required});
 const job=(requirements:Requirement[],complete=true)=>({assessment:{description:"Aviso de prueba",complete,requirements}});
+
+test("legacy alert-only jobs explain the missing vacancy without blaming a saved profile",()=>{
+ const alert={summary:"Importado desde una alerta de empleo. Falta revisar la descripción completa y la vigencia.",key_requirement:""};
+ assert.equal(jobSourceText(alert),"");const fit=assessFit(alert,profile);
+ assert.equal(fit.score,null);assert.equal(fit.missing,"requirements");assert.equal(fit.label,"Falta aviso");assert.match(fit.reason,/Tu perfil está disponible/);
+ assert.equal(assessFit(alert,emptyProfile).missing,"profile");
+});
+test("older jobs use actual requirement text from every available source and recalculate against profile edits",()=>{
+ const vacancy={description:"Descripción pendiente de revisión.",key_requirement:"Manejo de Excel.",summary:"Se requiere Google Ads."};
+ const fit=assessFit(vacancy,profile);assert.equal(fit.score,100);assert.equal(fit.provisional,true);assert.equal(fit.missing,null);
+ assert.equal(assessFit(vacancy,{...emptyProfile,skills:["Excel"]}).score,50);
+ const sparse=assessFit({description:"Manejo de Excel."},profile);assert.equal(sparse.label,"Faltan requisitos");assert.equal(sparse.missing,"requirements");
+});
+test("reviewed requirements remain authoritative instead of falling back to stale imported summaries",()=>{
+ const fit=assessFit({...job([req("skills","Python"),req("skills","SQL")]),summary:"Manejo de Excel y Google Ads."},profile);
+ assert.equal(fit.score,null);assert.equal(fit.missing,null);assert.ok(fit.evidence.every(e=>e.status==="unknown"));
+});
 test("empty profile and insufficient vacancy evidence never reuse an old score",()=>{
  assert.equal(assessFit({...job([req("skills","Excel"),req("skills","Google Ads")]),score:99} as never,emptyProfile).score,null);
  assert.equal(assessFit({summary:"An old analysis says perfect fit"},profile).score,null);
