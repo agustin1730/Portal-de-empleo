@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BriefcaseBusiness, LayoutGrid, Send, MessageSquare, CircleCheck, CircleX, Plus, Search, ArrowUpRight, Mail, MapPin, Wallet, X, SlidersHorizontal, Download, Upload, ChevronRight, Sparkles, ShieldCheck, RefreshCw, Check, FileText, Circle, Clock3, Cloud, Link2, Trash2, RotateCcw } from "lucide-react";
+import {Compass, BriefcaseBusiness, LayoutGrid, Send, MessageSquare, CircleCheck, CircleX, Plus, Search, ArrowUpRight, Mail, MapPin, Wallet, X, SlidersHorizontal, Download, Upload, ChevronRight, Sparkles, ShieldCheck, RefreshCw, Check, FileText, Circle, Clock3, Cloud, Link2, Trash2, RotateCcw } from "lucide-react";
 import FitPanel,{FitMini} from "./fit-panel";
 import {marketFor,matchesJob} from "../lib/job-filters";
 
@@ -37,7 +37,7 @@ export default function Tracker({displayName="Mi perfil",initialSection="todos"}
  <aside className="sidebar">
   <a href="/" className="brand"><div className="brand-icon"><BriefcaseBusiness size={22}/></div><span>mi búsqueda<span className="brand-dot">.</span></span></a>
   
-  <nav aria-label="Navegación principal"><a href="/?vista=perfil" className="nav-item"><FileText size={17}/><span>Mi perfil</span></a><button className={section!=="basura"?"nav-item active":"nav-item"} onClick={()=>setSection("todos")}><Search size={18}/><span>Oportunidades</span><b>{activeCount}</b></button>
+  <nav aria-label="Navegación principal"><a href="/?vista=perfil" className="nav-item"><FileText size={17}/><span>Mi perfil</span></a><a className="nav-item" href="/?vista=panorama"><Compass size={18}/><span>Panorama profesional</span></a><button className={section!=="basura"?"nav-item active":"nav-item"} onClick={()=>setSection("todos")}><Search size={18}/><span>Oportunidades</span><b>{activeCount}</b></button>
   <a href="/" className="nav-item"><LayoutGrid size={18}/><span>CRM de postulaciones</span><b>{jobs.filter(j=>["postulado","contactado","entrevista","oferta"].includes(j.status)).length}</b></a><a href="/?vista=basura" className={"nav-item "+(section==="basura"?"active":"")}><Trash2 size={18}/><span>Basura</span><b>{counts.descartado||0}</b></a></nav>
   <div className="sidebar-bottom"><button className="connection-card" onClick={()=>setModal("connection")}><span className="connection-icon"><Sparkles size={18}/></span><span><strong>Tu asistente de búsqueda</strong><small>Sumá empleos con ayuda de IA</small></span><ChevronRight size={15}/></button>
   <button className="profile-button" onClick={()=>setModal("profile")}><div className="avatar">{displayName.split(" ").slice(0,2).map(s=>s[0]).join("").toUpperCase()}</div><span><strong>{displayName}</strong></span><SlidersHorizontal size={16}/></button></div>

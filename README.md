@@ -23,6 +23,12 @@ The private profile is available at `/?vista=perfil`. It supports contact detail
 
 The draft shows extracted facts, uncertain data and original text. Nothing is uploaded or persisted until the user selects sections and explicitly accepts. Cancel leaves the profile and previous CV unchanged. Saving defaults to filling empty fields only; replacing selected sections requires choosing that option. Profile changes and the original CV are saved together in one owner-scoped transaction. Photo and cover letter remain unchanged. Each saved section can then be edited normally. Year-only dates stay year-only, and do not prove exact experience duration for affinity scores until months are completed. Column layouts and unfamiliar headings can require manual corrections; no qualification or missing month is invented. Ordinary hosting/database usage remains subject to the project's existing plan.
 
+## Panorama profesional y portfolio
+
+`/?vista=panorama` reads the current owner-scoped profile on each visit. It shows related work areas, evidence sources, strengths, missing documentation, role families and three next actions. The qualitative bars distinguish absent evidence, declared skills/training, related work tasks and tasks supported by explicit skills. A limited keyword method is explained in the UI; it does not measure competence, seniority or hiring probability. Founder titles alone do not prove people management. Empty profiles produce an honest empty state, not sample strengths.
+
+Mi perfil includes **Sitio web y portfolio** with up to ten editable links, each with a title, HTTP(S) URL and contribution/results description. Links and notes use the existing private profile JSON and owner-only save API; no new database migration is needed. Executable schemes and embedded credentials are rejected. External links open with noreferrer/noopener. Sites are not fetched automatically and link text does not raise evidence bars or fit scores. CV imports leave these links unchanged.
+
 ## Setup
 
 1. Import this repository into a Vercel project. Framework: Next.js. Build: npm run build.

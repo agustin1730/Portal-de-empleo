@@ -1,20 +1,24 @@
 export type Experience={role:string;company:string;start:string;end:string;ongoing?:boolean;description:string};
 export type Education={title:string;institution:string;start:string;end:string;ongoing?:boolean};
 export type Language={name:string;level:string};
-export type Profile={name:string;headline:string;location:string;email:string;phone:string;summary:string;experience:Experience[];education:Education[];skills:string[];personalSkills:string[];languages:Language[];letter:string};
-export const emptyProfile:Profile={name:"",headline:"",location:"",email:"",phone:"",summary:"",experience:[],education:[],skills:[],personalSkills:[],languages:[],letter:""};
+export type PortfolioLink={title:string;url:string;description:string};
+export type Profile={name:string;headline:string;location:string;email:string;phone:string;summary:string;experience:Experience[];education:Education[];skills:string[];personalSkills:string[];languages:Language[];letter:string;portfolio:PortfolioLink[]};
+export const emptyProfile:Profile={name:"",headline:"",location:"",email:"",phone:"",summary:"",experience:[],education:[],skills:[],personalSkills:[],languages:[],letter:"",portfolio:[]};
 export function formatProfileDate(value:string){return /^\d{4}$/.test(value)?value:value?new Date(value+"-02T12:00:00").toLocaleDateString("es-AR",{month:"short",year:"numeric"}):"Por confirmar";}
 export function profilePeriod(row:{start:string;end:string;ongoing?:boolean},education=false){if(!row.start&&row.end)return formatProfileDate(row.end);return `${formatProfileDate(row.start)} – ${row.end?formatProfileDate(row.end):row.ongoing===false?"Finalización por confirmar":education?"En curso":"Actualidad"}`;}
-export const profileSections=["contact","summary","experience","education","skills","languages","letter"] as const;
+export const profileSections=["contact","summary","experience","education","skills","languages","letter","portfolio"] as const;
 export type ProfileSection=typeof profileSections[number];
-const fields:Record<ProfileSection,(keyof Profile)[]>={contact:["name","headline","location","email","phone"],summary:["summary"],experience:["experience"],education:["education"],skills:["skills","personalSkills"],languages:["languages"],letter:["letter"]};
+const fields:Record<ProfileSection,(keyof Profile)[]>={contact:["name","headline","location","email","phone"],summary:["summary"],experience:["experience"],education:["education"],skills:["skills","personalSkills"],languages:["languages"],letter:["letter"],portfolio:["portfolio"]};
 function text(value:unknown,max:number){if(typeof value!=="string"||value.length>max)throw new Error("Revisá los datos: hay campos vacíos o demasiado extensos.");return value.trim();}
 function month(value:string){if(value&&!/^(19|20)\d{2}(?:-(0[1-9]|1[0-2]))?$/.test(value))throw new Error("Fecha no válida.");return value;}
 export function normalizeSection(section:unknown,input:unknown):Partial<Profile>{
  if(typeof section!=="string"||!profileSections.includes(section as ProfileSection)||!input||typeof input!=="object")throw new Error("Sección no válida.");
  const data=input as Record<string,unknown>,patch:Record<string,unknown>={};
  for(const key of fields[section as ProfileSection]){
-  if(key==="skills"||key==="personalSkills"){
+  if(key==="portfolio"){
+   if(!Array.isArray(data.portfolio)||data.portfolio.length>10)throw new Error("Podés guardar hasta 10 enlaces de tu portfolio.");
+   patch.portfolio=data.portfolio.map(row=>{if(!row||typeof row!=="object")throw new Error("Enlace no válido.");const title=text(row.title,120),value=text(row.url,2000),description=text(row.description,1500);if(!title||!value)throw new Error("Completá el título y la URL del enlace.");let url:URL;try{url=new URL(value);}catch{throw new Error("Ingresá una URL completa, por ejemplo https://misitio.com.");}if(!["https:","http:"].includes(url.protocol)||url.username||url.password)throw new Error("El enlace debe usar http o https y no incluir credenciales.");return {title,url:url.href,description};});
+  }else if(key==="skills"||key==="personalSkills"){
    if(!Array.isArray(data[key])||data[key].length>40)throw new Error("Podés guardar hasta 40 habilidades por grupo.");
    patch[key]=[...new Set((data[key] as unknown[]).map(v=>text(v,100)).filter(Boolean))];
   }else if(["experience","education","languages"].includes(key)){

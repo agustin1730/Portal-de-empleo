@@ -25,9 +25,10 @@ test("profile and documents stay private and saving one section preserves the ot
   await db.exec(await readFile(new URL("../supabase/migrations/20261113110353_add_private_candidate_profile.sql",import.meta.url),"utf8"));
   await db.exec(`set role authenticated;set request.jwt.claim.sub='${a}';`);
   await db.query("select public.save_profile_section($1::jsonb)",[JSON.stringify({name:"Profile A",summary:"Keep experience"})]);
-  await db.query("select public.save_profile_section($1::jsonb)",[JSON.stringify({letter:"My letter"})]);
+  await db.query("select public.save_profile_section($1::jsonb)",[JSON.stringify({letter:"My letter",portfolio:[{title:"Portfolio",url:"https://example.com/",description:"My contribution"}]})]);
   const profile=(await db.query<{data:{summary:string;letter:string}}>("select data from public.candidate_profiles")).rows[0].data;
   assert.equal(profile.summary,"Keep experience");assert.equal(profile.letter,"My letter");
+  const links=(await db.query<{data:{portfolio:{url:string}[]}}>("select data from public.candidate_profiles")).rows[0].data.portfolio;assert.equal(links[0].url,"https://example.com/");
   await db.query("insert into public.candidate_files(owner_id,kind,name,mime,content) values($1,'cv','cv.pdf','application/pdf','JVBERi0=')",[a]);
   await db.exec(`set request.jwt.claim.sub='${b}';`);
   assert.equal((await db.query("select * from public.candidate_files")).rows.length,0);
