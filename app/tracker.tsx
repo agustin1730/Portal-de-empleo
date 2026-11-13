@@ -1,7 +1,7 @@
 "use client";
 import WorkConditions from "./work-conditions";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BriefcaseBusiness, LayoutGrid, Send, MessageSquare, CircleCheck, CircleX, Plus, Search, ArrowUpRight, Mail, MapPin, Wallet, X, SlidersHorizontal, Download, Upload, ChevronRight, Sparkles, ShieldCheck, RefreshCw, Check, FileText, Circle, Clock3, Cloud, Link2, Trash2, RotateCcw } from "lucide-react";
+import { House,BriefcaseBusiness, LayoutGrid, Send, MessageSquare, CircleCheck, CircleX, Plus, Search, ArrowUpRight, Mail, MapPin, Wallet, X, SlidersHorizontal, Download, Upload, ChevronRight, Sparkles, ShieldCheck, RefreshCw, Check, FileText, Circle, Clock3, Cloud, Link2, Trash2, RotateCcw } from "lucide-react";
 import FitPanel,{FitEditor} from "./fit-panel";
 import "./compact-cards.css";
 import "./compact-drawer.css";
@@ -15,15 +15,17 @@ const stageName=(id:string)=>id==="basura"?"Basura":stages.find(s=>s.id===id)?.l
 function Portal({name}:{name:string}){return <span className={"portal portal-"+name.toLowerCase()}>{["Indeed","Computrabajo"].includes(name)?<img src={name==="Indeed"?"/portal-indeed.png":"/portal-computrabajo.png"} alt={name}/>:["Bumeran","ZonaJobs"].includes(name)?<span className={"portal-mark mark-"+name.toLowerCase()} role="img" aria-label={name}/>:<span className="portal-letter">{name==="LinkedIn"?"in":name[0]}</span>}<span>{name}</span></span>;}
 function cardSummary(job:Job){const summary=typeof job.summary==="string"?job.summary.trim():"";const source=summary&&!/^(Importado desde una alerta|Descripción pendiente)/i.test(summary)?summary:job.assessment?.description||job.description||"";return typeof source==="string"&&source.trim()?source.replace(/\s+/g," ").trim():"Descripción del puesto pendiente.";}
 function cardLocation(job:Job){const location=job.location_label||"Ubicación a confirmar",mode=job.mode&&job.mode!=="A confirmar"?job.mode:"";return mode&&!location.toLocaleLowerCase("es").includes(mode.toLocaleLowerCase("es"))?location+" · "+mode:location;}
-export default function Tracker({displayName="Mi perfil",initialSection="todos"}:{displayName?:string;initialSection?:"todos"|"basura"}){
+export default function Tracker({displayName="Mi perfil",initialSection="todos",initialJobId}:{displayName?:string;initialSection?:"todos"|"basura";initialJobId?:string}){
  const [jobs,setJobs]=useState<Job[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(""),[notice,setNotice]=useState(""),[busy,setBusy]=useState("");
  const [section,setSection]=useState<string>(initialSection),[search,setSearch]=useState(""),[portal,setPortal]=useState("todos"),[market,setMarket]=useState("todos"),[status,setStatus]=useState("todos"),[period,setPeriod]=useState("todos"),[mode,setMode]=useState("todos"),[sort,setSort]=useState("fit"),[advanced,setAdvanced]=useState(false);
  const [selected,setSelected]=useState<Job|null>(null),[notes,setNotes]=useState(""),[date,setDate]=useState(""),[modal,setModal]=useState(""),[adding,setAdding]=useState(false),[form,setForm]=useState({title:"",company:"",url:"",portal:"Otro",location_label:"",mode:"A confirmar",salary_label:""});
+ const openedInitial=useRef(false);
  const fileRef=useRef<HTMLInputElement>(null),notesRef=useRef<HTMLTextAreaElement>(null);
  async function load(){setLoading(true);setError("");try{const r=await fetch("/api/jobs",{cache:"no-store"});const d:any=await r.json();if(!r.ok)throw new Error(d.error);setJobs(d.jobs);}catch(e){setError(e instanceof Error?e.message:"No se pudo cargar.");}finally{setLoading(false);}}
  useEffect(()=>{void load();const refresh=()=>void load();window.addEventListener("focus",refresh);return()=>window.removeEventListener("focus",refresh);},[]);
  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(""),4500);return()=>clearTimeout(timer);},[notice]);
  useEffect(()=>{const old=document.body.style.overflow;if(selected||modal)document.body.style.overflow="hidden";return()=>{document.body.style.overflow=old;};},[selected,modal]);
+ useEffect(()=>{if(initialJobId&&!openedInitial.current&&jobs.length){const job=jobs.find(job=>job.id===initialJobId);if(job){openedInitial.current=true;open(job);}}},[initialJobId,jobs]);
  const dirty=selected&&(notes!==(selected.notes||"")||date!==(selected.applied_at||""));
  function closeDetails(){if(dirty&&!window.confirm("Tenés cambios sin guardar. ¿Querés cerrar igual?"))return;setSelected(null);}
  useEffect(()=>{const listener=(e:KeyboardEvent)=>{if(e.key==="Escape"){if(selected)closeDetails();else setModal("");}};window.addEventListener("keydown",listener);return()=>window.removeEventListener("keydown",listener);},[selected,notes,date]);
@@ -42,8 +44,8 @@ export default function Tracker({displayName="Mi perfil",initialSection="todos"}
  <aside className="sidebar">
   <a href="/" className="brand"><div className="brand-icon"><BriefcaseBusiness size={22}/></div><span>mi búsqueda<span className="brand-dot">.</span></span></a>
 
-  <nav aria-label="Navegación principal"><a href="/?vista=perfil" className="nav-item"><FileText size={17}/><span>Mi perfil</span></a><button className={section!=="basura"?"nav-item active":"nav-item"} onClick={()=>setSection("todos")}><Search size={18}/><span>Oportunidades</span><b>{activeCount}</b></button>
-  <a href="/" className="nav-item"><LayoutGrid size={18}/><span>CRM de postulaciones</span><b>{jobs.filter(j=>["postulado","contactado","entrevista","oferta"].includes(j.status)).length}</b></a><a href="/?vista=basura" className={"nav-item "+(section==="basura"?"active":"")}><Trash2 size={18}/><span>Basura</span><b>{counts.descartado||0}</b></a></nav>
+  <nav aria-label="Navegación principal"><a href="/" className="nav-item"><House size={18}/><span>Inicio</span></a><a href="/?vista=perfil" className="nav-item"><FileText size={17}/><span>Mi perfil</span></a><button className={section!=="basura"?"nav-item active":"nav-item"} onClick={()=>setSection("todos")}><Search size={18}/><span>Oportunidades</span><b>{activeCount}</b></button>
+  <a href="/?vista=crm" className="nav-item"><LayoutGrid size={18}/><span>CRM de postulaciones</span><b>{jobs.filter(j=>["postulado","contactado","entrevista","oferta"].includes(j.status)).length}</b></a><a href="/?vista=basura" className={"nav-item "+(section==="basura"?"active":"")}><Trash2 size={18}/><span>Basura</span><b>{counts.descartado||0}</b></a></nav>
   <div className="sidebar-bottom"><button className="connection-card" onClick={()=>setModal("connection")}><span className="connection-icon"><Sparkles size={18}/></span><span><strong>Tu asistente de búsqueda</strong><small>Sumá empleos con ayuda de IA</small></span><ChevronRight size={15}/></button>
   <button className="profile-button" onClick={()=>setModal("profile")}><div className="avatar">{displayName.split(" ").slice(0,2).map(s=>s[0]).join("").toUpperCase()}</div><span><strong>{displayName}</strong></span><SlidersHorizontal size={16}/></button></div>
  </aside>

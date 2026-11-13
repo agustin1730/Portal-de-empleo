@@ -30,6 +30,8 @@ test("profile and documents stay private and saving one section preserves the ot
   await db.query("select public.save_profile_section($1::jsonb)",[JSON.stringify({letter:"My letter",portfolio:[{title:"Portfolio",url:"https://example.com/",description:"My contribution"}]})]);
   await db.query("select public.save_profile_section($1::jsonb)",[JSON.stringify(normalizeSection("preferences",{preferences:{...emptyPreferences,salaryMin:"900000",roles:"Ventas"}}))]);
   await db.query("select public.save_profile_section($1::jsonb)",[JSON.stringify(normalizeSection("skills",{skills:["Excel"],personalSkills:[],skillEvidence:[{skill:"Excel",context:"Reportes · Empresa"}]}))]);
+  await db.query("select public.save_profile_section($1::jsonb)",[JSON.stringify({dashboard_tasks:[{id:"t1",title:"Seguimiento",date:"2026-11-13",time:"",jobId:"",done:false}],dashboard_review:{status:"complete",started_at:"2026-11-13T12:00:00Z",finished_at:"2026-11-13T12:10:00Z",checked:1,completed:1,message:""}})]);
+  const metadata=(await db.query<{data:{dashboard_tasks:{title:string}[];summary:string}}>("select data from public.candidate_profiles")).rows[0].data;assert.equal(metadata.dashboard_tasks[0].title,"Seguimiento");assert.equal(metadata.summary,"Keep experience");
   const saved=(await db.query<{data:{preferences:{salaryMin:string};skillEvidence:{context:string}[]}}>("select data from public.candidate_profiles")).rows[0].data;
   assert.equal(saved.preferences.salaryMin,"900000");assert.equal(saved.skillEvidence[0].context,"Reportes · Empresa");
   const profile=(await db.query<{data:{summary:string;letter:string}}>("select data from public.candidate_profiles")).rows[0].data;

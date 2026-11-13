@@ -1,0 +1,10 @@
+# Registro de revisión automática
+Inicio lee el resultado real desde candidate_profiles.data.dashboard_review. Este campo es metadato administrativo privado de la revisión: no es parte del CV ni autoriza modificar el contenido profesional del perfil.
+
+Al comenzar, registrar status running, started_at ISO UTC, finished_at null, checked 0, completed 0 y message vacío. Al finalizar, conservar started_at y registrar finished_at, status complete/partial/failed, cantidades verificadas checked/completed (completed <= checked), y un mensaje breve de cobertura o error, sin credenciales ni datos de contacto. Complete significa que se completó el alcance declarado del lote; no que desapareció todo el backlog. Si el proceso aborta sin cierre, Inicio lo muestra sin cierre registrado después de 90 minutos.
+
+Preferir la herramienta autenticada report_job_review de /mcp del portal actual, que valida y guarda únicamente estos metadatos. Si se usa el conector Supabase de la skill, resolver el propietario confirmado siguiendo su referencia privada y filtrar estrictamente owner_id. Actualizar atómicamente solo data.dashboard_review mediante jsonb_set en public.candidate_profiles, preservando todas las demás claves (incluyendo dashboard_tasks), y verificar el registro con lectura posterior. No ejecutar una actualización completa de data, no marcar éxito sin lectura y no incluir direcciones de correo o UUID en respuestas.
+
+Si todavía no existe candidate_profiles para el propietario verificado, insertar una fila con owner_id y data que contenga únicamente dashboard_review, usando ON CONFLICT (owner_id) DO UPDATE SET data = candidate_profiles.data || excluded.data, updated_at = now(). El propietario ya debe existir y estar verificado; no crear usuarios ni cambiar acceso. El RPC save_profile_section con rol authenticated y auth.uid del propietario también permite mezclar únicamente esta clave.
+
+La automatización conserva su horario diario a las 09:00 de Argentina, límite de 20 avisos, verificación de fuentes y lectura posterior. No envía postulaciones ni mensajes. No registrar ejecuciones de ejemplo en la cuenta real.
