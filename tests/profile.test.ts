@@ -15,7 +15,9 @@ test("uploads require supported file signatures and obey size limits",()=>{
  validateFile("photo","image/png",new Uint8Array([137,80,78,71,13,10,26,10]));
  assert.throws(()=>validateFile("cv","application/pdf",new TextEncoder().encode("<script>bad</script>")));
  assert.throws(()=>validateFile("photo","image/svg+xml",new TextEncoder().encode("<svg/>")));
- assert.throws(()=>validateFile("photo","image/jpeg",new Uint8Array(3*1024*1024)));
+ const photo=new Uint8Array(3*1024*1024);photo.set([137,80,78,71,13,10,26,10]);
+ validateFile("photo","image/png",photo);
+ const oversizedPhoto=new Uint8Array(3*1024*1024+1);oversizedPhoto.set(photo);assert.throws(()=>validateFile("photo","image/png",oversizedPhoto),/3 MB/);
  assert.throws(()=>validateFile("cv","application/pdf",new Uint8Array(4*1024*1024)));
 });
 test("profile and documents stay private and saving one section preserves the others",async()=>{
@@ -30,11 +32,18 @@ test("profile and documents stay private and saving one section preserves the ot
   assert.equal(profile.summary,"Keep experience");assert.equal(profile.letter,"My letter");
   const links=(await db.query<{data:{portfolio:{url:string}[]}}>("select data from public.candidate_profiles")).rows[0].data.portfolio;assert.equal(links[0].url,"https://example.com/");
   await db.query("insert into public.candidate_files(owner_id,kind,name,mime,content) values($1,'cv','cv.pdf','application/pdf','JVBERi0=')",[a]);
+  await db.query("insert into public.candidate_files(owner_id,kind,name,mime,content) values($1,'letter','letter.pdf','application/pdf','JVBERi0='),($1,'photo','photo.png','image/png','iVBORw==')",[a]);
   await db.exec(`set request.jwt.claim.sub='${b}';`);
   assert.equal((await db.query("select * from public.candidate_files")).rows.length,0);
   assert.equal((await db.query("select * from public.candidate_profiles")).rows.length,0);
   assert.equal((await db.query("update public.candidate_profiles set data='{}' where owner_id=$1 returning owner_id",[a])).rows.length,0);
+  assert.equal((await db.query("delete from public.candidate_files where owner_id=$1 and kind='cv' returning kind",[a])).rows.length,0);
   await assert.rejects(()=>db.query("insert into public.candidate_files(owner_id,kind,name,mime,content) values($1,'photo','x.jpg','image/jpeg','data')",[a]));
+  await db.exec(`set request.jwt.claim.sub='${a}';`);
+  const before=(await db.query("select data from public.candidate_profiles")).rows[0].data;
+  assert.equal((await db.query("delete from public.candidate_files where owner_id=$1 and kind='cv' returning kind",[a])).rows.length,1);
+  assert.deepEqual((await db.query("select data from public.candidate_profiles")).rows[0].data,before);
+  assert.deepEqual((await db.query<{kind:string}>("select kind from public.candidate_files order by kind")).rows.map(row=>row.kind),["letter","photo"]);
   await db.exec("reset role;set role anon;");
   await assert.rejects(()=>db.query("select * from public.candidate_files"));
   await assert.rejects(()=>db.query("select public.save_profile_section('{}')"));

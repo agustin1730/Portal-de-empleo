@@ -33,7 +33,7 @@ export function normalizeSection(section:unknown,input:unknown):Partial<Profile>
 export type FileKind="cv"|"photo"|"letter";
 export function validKind(value:unknown):value is FileKind{return ["cv","photo","letter"].includes(String(value));}
 export function validateFile(kind:FileKind,mime:string,bytes:Uint8Array){
- if(!bytes.length||bytes.length>(kind==="photo"?2:3)*1024*1024)throw new Error(kind==="photo"?"La foto debe pesar hasta 2 MB.":"El PDF debe pesar hasta 3 MB.");
+ if(!bytes.length||bytes.length>3*1024*1024)throw new Error(kind==="photo"?"La foto debe pesar hasta 3 MB.":"El PDF debe pesar hasta 3 MB.");
  const pdf=bytes[0]===37&&bytes[1]===80&&bytes[2]===68&&bytes[3]===70&&bytes[4]===45;
  const png=[137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v);
  const jpeg=bytes[0]===255&&bytes[1]===216&&bytes[2]===255;

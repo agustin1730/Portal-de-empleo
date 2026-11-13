@@ -17,7 +17,7 @@ The app can track any career direction. Personal display names are loaded from t
 
 ## Mi perfil
 
-The private profile is available at `/?vista=perfil`. It supports contact details, a professional summary, experience, education, skills, languages, and a written cover letter. The CV and attached cover letter accept PDF files up to 3 MB; the profile photo accepts JPG/PNG up to 2 MB. Files and profile data are owner-only through authenticated API routes and database RLS. Bounded attachments are stored privately in Postgres. The profile starts empty, without mockup sample data.
+The private profile is available at `/?vista=perfil`. It supports contact details, a professional summary, experience, education, skills, languages, and a written cover letter. The CV and attached cover letter accept PDF files up to 3 MB; the profile photo accepts JPG/PNG up to 3 MB. Files and profile data are owner-only through authenticated API routes and database RLS. Bounded attachments are stored privately in Postgres. The profile starts empty, without mockup sample data. **Eliminar CV** deletes only the owner-scoped PDF attachment after confirmation; it never clears the imported profile, photo, cover letter or portfolio.
 
 **CV → draft → review → save → edit:** uploading a CV reads selectable PDF text locally in the browser using PDF.js, then applies deterministic Spanish/English section rules. This feature has no AI provider, API key or per-document processing fee. It accepts up to 10 pages and 80,000 characters; scanned/image-only and password-protected PDFs are unsupported. The versioned PDF worker is copied from the pinned dependency during predev/prebuild and served from the same origin.
 
