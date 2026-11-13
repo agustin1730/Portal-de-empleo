@@ -16,7 +16,7 @@ export async function normalizeJob(x:Data){
   portal:bounded(x.portal,60)||"Otro",industry:bounded(x.industry,200)||"Sector a confirmar",
   url,gmail_url:safeUrl(x.gmail_url),company_logo_url:safeUrl(x.company_logo_url),
   location_label:bounded(x.location_label||x.location,200)||"Ubicación a confirmar",
-  mode:bounded(x.mode,60)||"A confirmar",salary_label:bounded(x.salary_label,200)||"Sueldo neto a confirmar",
+  hours:bounded(x.hours,200),mode:bounded(x.mode,60)||"A confirmar",salary_label:bounded(x.salary_label,200)||"Sueldo neto a confirmar",
   summary:bounded(x.summary,1200)||"Descripción pendiente de revisión.",score,
   recommendation:bounded(x.recommendation,80)||"Needs description",provisional:!!x.provisional,
   matches:arr(x.matches),gaps:arr(x.gaps),next_action:bounded(x.next_action,500)||"Revisar el aviso.",

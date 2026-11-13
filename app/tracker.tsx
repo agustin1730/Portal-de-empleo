@@ -1,4 +1,5 @@
 "use client";
+import WorkConditions from "./work-conditions";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BriefcaseBusiness, LayoutGrid, Send, MessageSquare, CircleCheck, CircleX, Plus, Search, ArrowUpRight, Mail, MapPin, Wallet, X, SlidersHorizontal, Download, Upload, ChevronRight, Sparkles, ShieldCheck, RefreshCw, Check, FileText, Circle, Clock3, Cloud, Link2, Trash2, RotateCcw } from "lucide-react";
 import FitPanel,{FitEditor} from "./fit-panel";
@@ -83,7 +84,7 @@ export default function Tracker({displayName="Mi perfil",initialSection="todos"}
  <div className="job-facts"><span><MapPin size={14}/>{cardLocation(selected)}</span><span><Wallet size={14}/>{selected.salary_label||"Sueldo a confirmar"}</span></div>
  <p className="compact-drawer-summary">{cardSummary(selected)}</p>
 
- <FitPanel job={jobs.find(j=>j.id===selected.id)||selected}/>
+ <FitPanel job={jobs.find(j=>j.id===selected.id)||selected}/><WorkConditions conditions={(jobs.find(j=>j.id===selected.id)||selected).conditions}/>
  <details className="compact-drawer-section clear-description"><summary>Ver descripción completa<ArrowUpRight size={12}/></summary><div className="compact-drawer-section-body">{selected.title_original&&selected.title_original!==selected.title&&<p className="compact-original-title">{selected.title_original}</p>}{selected.industry&&selected.industry!=="Sector a confirmar"&&<p className="compact-industry">{selected.industry}</p>}<p>{jobSourceText(selected)||"Descripción del puesto pendiente."}</p><FitEditor key={selected.id} job={jobs.find(j=>j.id===selected.id)||selected} busy={!!busy} error={error} onSave={assessment=>patch(selected,{assessment})}/></div></details>
  <details className="compact-drawer-section" open={dirty?true:undefined}><summary>Notas y seguimiento{notes&&<span>Con notas</span>}</summary><div className="compact-drawer-section-body"><label className="compact-date">Fecha de postulación<input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>{selected.application_evidence&&<p className="evidence"><CircleCheck size={13}/>{selected.application_evidence}</p>}<label className="notes-label">Tus notas<textarea ref={notesRef} maxLength={12000} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Contacto, condiciones o preguntas…" rows={3}/></label></div></details>
  {error&&<p role="alert" className="form-error">{error}</p>}

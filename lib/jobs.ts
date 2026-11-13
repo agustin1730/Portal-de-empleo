@@ -1,3 +1,4 @@
+import {compareWorkConditions} from "./work-conditions";
 import {assessFit,normalizeAssessment} from "./fit";
 import {emptyProfile} from "./profile-data";
 import {createClient} from "./supabase/server";
@@ -20,7 +21,7 @@ export async function listJobs(owner:string){
   fail(error);rows.push(...(data||[]));if(!data||data.length<500)break;
  }
  const {data:profile,error:profileError}=await db.from("candidate_profiles").select("data,updated_at").eq("owner_id",owner).maybeSingle();fail(profileError);
- return rows.map(r=>{const fit=assessFit(r.payload,profile?{...emptyProfile,...profile.data}:null,profile?.updated_at||null);return {...r.payload,score:fit.score,fit,id:r.id,status:r.status,notes:r.notes,applied_at:r.applied_at,created_at:r.created_at,updated_at:r.updated_at};});
+ return rows.map(r=>{const fit=assessFit(r.payload,profile?{...emptyProfile,...profile.data}:null,profile?.updated_at||null);return {...r.payload,score:fit.score,fit,conditions:compareWorkConditions(r.payload,profile?.data?.preferences||null),id:r.id,status:r.status,notes:r.notes,applied_at:r.applied_at,created_at:r.created_at,updated_at:r.updated_at};});
 }
 export async function importJobs(owner:string,items:Data[]){
  if(!Array.isArray(items)||items.length<1||items.length>300)throw new Error("Importá entre 1 y 300 empleos.");
@@ -67,6 +68,6 @@ export async function updateJob(owner:string,id:string,patch:Data){
  }
  const {data,error}=await db.from("jobs").update(changes).eq("owner_id",owner).eq("id",id).select("id,status,notes,applied_at").single();
  fail(error);if(!data)throw new Error("No se encontró el empleo.");
- if(changes.payload){const {data:profile,error:profileError}=await db.from("candidate_profiles").select("data,updated_at").eq("owner_id",owner).maybeSingle();fail(profileError);const fit=assessFit(changes.payload,profile?{...emptyProfile,...profile.data}:null,profile?.updated_at||null);return {...payloadPatch,...data,fit,score:fit.score};}
+ if(changes.payload){const {data:profile,error:profileError}=await db.from("candidate_profiles").select("data,updated_at").eq("owner_id",owner).maybeSingle();fail(profileError);const fit=assessFit(changes.payload,profile?{...emptyProfile,...profile.data}:null,profile?.updated_at||null);return {...payloadPatch,...data,fit,score:fit.score,conditions:compareWorkConditions(changes.payload,profile?.data?.preferences||null)};}
  return {...payloadPatch,...data};
 }
