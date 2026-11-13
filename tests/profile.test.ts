@@ -2,12 +2,12 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 import {PGlite} from "@electric-sql/pglite";
-import {normalizeSection,validateFile} from "../lib/profile-data.ts";
+import {emptyPreferences,normalizeSection,validateFile} from "../lib/profile-data.ts";
 test("profile validates bounded sections and excludes unrelated fields",()=>{
  assert.deepEqual(normalizeSection("summary",{summary:"  Mi trayectoria  ",owner_id:"another",letter:"ignore"}),{summary:"Mi trayectoria"});
  assert.throws(()=>normalizeSection("contact",{name:"A",headline:"",location:"",email:"invalid",phone:""}));
  assert.throws(()=>normalizeSection("experience",{experience:[{role:"QA",company:"Test",start:"2026-11",end:"2025-01",description:""}]}));
- assert.deepEqual(normalizeSection("skills",{skills:["Excel","Excel",""],personalSkills:[]}),{skills:["Excel"],personalSkills:[]});
+ assert.deepEqual(normalizeSection("skills",{skills:["Excel","Excel",""],personalSkills:[]}),{skills:["Excel"],personalSkills:[],skillEvidence:[]});
  assert.throws(()=>normalizeSection("summary",{summary:"x".repeat(4001)}));
 });
 test("uploads require supported file signatures and obey size limits",()=>{
@@ -28,6 +28,10 @@ test("profile and documents stay private and saving one section preserves the ot
   await db.exec(`set role authenticated;set request.jwt.claim.sub='${a}';`);
   await db.query("select public.save_profile_section($1::jsonb)",[JSON.stringify({name:"Profile A",summary:"Keep experience"})]);
   await db.query("select public.save_profile_section($1::jsonb)",[JSON.stringify({letter:"My letter",portfolio:[{title:"Portfolio",url:"https://example.com/",description:"My contribution"}]})]);
+  await db.query("select public.save_profile_section($1::jsonb)",[JSON.stringify(normalizeSection("preferences",{preferences:{...emptyPreferences,salaryMin:"900000",roles:"Ventas"}}))]);
+  await db.query("select public.save_profile_section($1::jsonb)",[JSON.stringify(normalizeSection("skills",{skills:["Excel"],personalSkills:[],skillEvidence:[{skill:"Excel",context:"Reportes · Empresa"}]}))]);
+  const saved=(await db.query<{data:{preferences:{salaryMin:string};skillEvidence:{context:string}[]}}>("select data from public.candidate_profiles")).rows[0].data;
+  assert.equal(saved.preferences.salaryMin,"900000");assert.equal(saved.skillEvidence[0].context,"Reportes · Empresa");
   const profile=(await db.query<{data:{summary:string;letter:string}}>("select data from public.candidate_profiles")).rows[0].data;
   assert.equal(profile.summary,"Keep experience");assert.equal(profile.letter,"My letter");
   const links=(await db.query<{data:{portfolio:{url:string}[]}}>("select data from public.candidate_profiles")).rows[0].data.portfolio;assert.equal(links[0].url,"https://example.com/");
@@ -48,4 +52,13 @@ test("profile and documents stay private and saving one section preserves the ot
   await assert.rejects(()=>db.query("select * from public.candidate_files"));
   await assert.rejects(()=>db.query("select public.save_profile_section('{}')"));
  }finally{await db.close();}
+});
+
+test("preferences and skill context validate without replacing other profile data",()=>{
+ const preferences={...emptyPreferences,salaryMin:"1000000",roles:"Ventas",modality:"Híbrido"};
+ assert.deepEqual(normalizeSection("preferences",{preferences,summary:"ignore"}),{preferences});
+ assert.throws(()=>normalizeSection("preferences",{preferences:{...preferences,salaryMin:"-1"}}));
+ assert.throws(()=>normalizeSection("preferences",{preferences:{...preferences,currency:"XYZ"}}));
+ assert.deepEqual(normalizeSection("skills",{skills:["Excel"],personalSkills:[],skillEvidence:[{skill:"Excel",context:"Reportes · Empresa"},{skill:"Removed",context:"Discard"}]}),{skills:["Excel"],personalSkills:[],skillEvidence:[{skill:"Excel",context:"Reportes · Empresa"}]});
+ assert.equal(normalizeSection("experience",{experience:[{role:"Ventas",company:"A",start:"",end:"",description:"",industry:"Comercio"}]}).experience?.[0].industry,"Comercio");
 });
