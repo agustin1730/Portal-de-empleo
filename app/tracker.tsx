@@ -74,7 +74,7 @@ export default function Tracker({displayName="Mi perfil",initialSection="todos",
      <div className="compact-card-title"><button className="job-title" onClick={()=>open(j)}>{j.title}</button><div className={"compact-card-score "+(j.score==null?"unrated":j.score>=75?"high":j.score>=50?"medium":"low")} aria-label={j.score==null?(j.fit?.label||"Sin evaluar"):`Afinidad: ${j.score} de 100`}><strong>{j.score??"—"}</strong><small>{j.score==null?(j.fit?.label||"Sin evaluar"):"Afinidad"}</small></div></div>
      <div className="job-facts"><span><MapPin size={13}/>{cardLocation(j)}</span><span><Wallet size={13}/>{j.salary_label||"Sueldo a confirmar"}</span></div>
      <p className="job-summary">{cardSummary(j)}</p>
-     <div className="card-bottom">{section==="basura"?<button className="text-button" disabled={!!busy} onClick={()=>patch(j,{status:j.applied_at?"postulado":"pendiente"})}><RotateCcw size={14}/>Restaurar a {j.applied_at?"Postulado":"Por revisar"}</button>:<label className={"status-select status-"+j.status}><span className="mini-dot"/><select aria-label={"Estado de "+j.title} value={j.status} disabled={!!busy} onChange={e=>patch(j,{status:e.target.value})}>{stages.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></label>}<button className="details-button" onClick={()=>open(j)}>Ver detalle<ArrowUpRight size={15}/></button></div>
+     <div className="card-bottom">{section==="basura"?<button className="text-button" disabled={!!busy} onClick={()=>patch(j,{status:j.applied_at?"postulado":"pendiente"})}><RotateCcw size={14}/>Restaurar a {j.applied_at?"Postulado":"Por revisar"}</button>:<label className={"status-select status-"+j.status}><span className="mini-dot"/><select aria-label={"Estado de "+j.title} value={j.status} disabled={!!busy} onChange={e=>patch(j,{status:e.target.value})}>{stages.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></label>}<div className="compact-card-actions">{j.url&&<a className="details-button" href={j.url} target="_blank" rel="noopener noreferrer" aria-label={"Ver oferta de "+j.title+" (abre en otra pestaña)"}>Ver oferta<ArrowUpRight size={15}/></a>}<button className="details-button" onClick={()=>open(j)}>Ver detalle<ArrowUpRight size={15}/></button></div></div>
     </article>)}</div>}
     <footer className="collection-footer"><span><Cloud size={14}/>Tus estados y notas se guardan en tu cuenta.</span><span>Los avisos pueden cambiar o cerrar.</span></footer>
    </section>
@@ -96,3 +96,4 @@ export default function Tracker({displayName="Mi perfil",initialSection="todos",
  </section></div>}
  </div>;
 }
+
