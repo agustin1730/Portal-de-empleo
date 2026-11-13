@@ -4,7 +4,7 @@ import {FileText,X,Check,AlertCircle} from "lucide-react";
 import {parseCvText,hasSection,type CvDraft,type CvSection} from "../lib/cv-parser";
 import {profilePeriod,type Profile} from "../lib/profile-data";
 import "./cv-import.css";
-const names:Record<CvSection,string>={contact:"Datos de contacto",summary:"Resumen profesional",experience:"Experiencia laboral",education:"Educación",skills:"Habilidades",languages:"Idiomas"};
+const names:Record<CvSection,string>={contact:"Datos de contacto",summary:"Resumen profesional",experience:"Experiencia laboral",education:"Educación y cursos",skills:"Habilidades",languages:"Idiomas"};
 export default function CvImport({file,current,onCancel,onSaved}:{file:File;current:Profile;onCancel:()=>void;onSaved:(profile:Profile)=>void}){
  const dialog=useRef<HTMLDialogElement>(null);
  const [draft,setDraft]=useState<CvDraft|null>(null),[progress,setProgress]=useState("Leyendo el PDF en tu navegador…"),[error,setError]=useState(""),[selected,setSelected]=useState<CvSection[]>([]),[replace,setReplace]=useState(false),[accepted,setAccepted]=useState(false),[saving,setSaving]=useState(false);
@@ -16,7 +16,7 @@ export default function CvImport({file,current,onCancel,onSaved}:{file:File;curr
   if(section==="contact")return <dl>{([['name','Nombre'],['headline','Título profesional'],['location','Ubicación'],['email','Correo'],['phone','Teléfono']] as const).filter(([key])=>p[key]).map(([key,label])=><div key={key}><dt>{label}</dt><dd>{p[key]}</dd></div>)}</dl>;
   if(section==="summary")return <p className="cv-summary">{p.summary}</p>;
   if(section==="experience")return p.experience.map((row,i)=><div className="cv-row" key={i}><strong>{row.role}</strong><span>{row.company||"Empresa por confirmar"}</span><small>{profilePeriod(row)}</small><p>{row.description}</p></div>);
-  if(section==="education")return p.education.map((row,i)=><div className="cv-row" key={i}><strong>{row.title}</strong><span>{row.institution||"Institución por confirmar"}</span><small>{profilePeriod(row,true)}</small></div>);
+  if(section==="education")return p.education.map((row,i)=><div className="cv-row" key={i}><strong>{row.title}</strong>{row.kind==="course"&&<small>Formación y cursos</small>}<span>{row.institution||"Institución por confirmar"}</span><small>{profilePeriod(row,true)}</small></div>);
   if(section==="skills")return <><p className="cv-skill-label">Conocimientos</p><div className="candidate-tags">{p.skills.map(value=><span key={value}>{value}</span>)}</div>{p.personalSkills.length>0&&<><p className="cv-skill-label">Habilidades personales</p><div className="candidate-tags">{p.personalSkills.map(value=><span key={value}>{value}</span>)}</div></>}</>;
   return <div className="candidate-tags">{p.languages.map(row=><span key={row.name}>{row.name} · {row.level||"Por confirmar"}</span>)}</div>;
  }

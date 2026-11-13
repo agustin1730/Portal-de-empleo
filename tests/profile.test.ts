@@ -62,3 +62,11 @@ test("preferences and skill context validate without replacing other profile dat
  assert.deepEqual(normalizeSection("skills",{skills:["Excel"],personalSkills:[],skillEvidence:[{skill:"Excel",context:"Reportes · Empresa"},{skill:"Removed",context:"Discard"}]}),{skills:["Excel"],personalSkills:[],skillEvidence:[{skill:"Excel",context:"Reportes · Empresa"}]});
  assert.equal(normalizeSection("experience",{experience:[{role:"Ventas",company:"A",start:"",end:"",description:"",industry:"Comercio"}]}).experience?.[0].industry,"Comercio");
 });
+
+test("academic education and courses save together without losing their classification",()=>{
+ const education=[{title:"Licenciatura",institution:"Universidad",start:"2020",end:"2025"},{title:"Curso Excel",institution:"Instituto",start:"2026",end:"2026",kind:"course"}];
+ assert.deepEqual(normalizeSection("courses",{education}),{education});
+ assert.throws(()=>normalizeSection("courses",{education:[{...education[1],kind:"invalid"}]}));
+ const moved=structuredClone(education);moved[0]={...moved[0],kind:"course"};
+ assert.deepEqual(normalizeSection("education",{education:moved}),{education:moved});
+});

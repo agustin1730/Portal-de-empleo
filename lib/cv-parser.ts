@@ -79,7 +79,7 @@ export function parseCvText(input:string):CvDraft{
  profile.headline=header.find(line=>line!==name&&line!==contactLine&&!line.includes("@")&&!/\+?\d[\d\s()-]{7,}/.test(line)&&line.length<200&&!/curriculum vitae|curr[ií]culo|resume|^cv$/i.test(line))||"";
  profile.summary=blocks.summary.join(" ").slice(0,4000);
  profile.experience=experiences(blocks.experience,warnings);
- profile.education=education(blocks.education,warnings);
+ profile.education=education(blocks.education,warnings).map(row=>/^(?:curso|certificaci[oó]n|capacitaci[oó]n|course|certificate)\b/i.test(row.title)?{...row,kind:"course" as const}:row);
  const combined=[...blocks.combined,...blocks.languages].join("\n");profile.languages=languages(combined);
  const langLine=(line:string)=>languages(line).length>0;
  const splitSkills=(lines:string[])=>unique(lines.filter(line=>!langLine(line)).flatMap(line=>line.split(/[•·|;,\n]+/)).map(clean).filter(s=>s.length>1&&s.length<=100)).slice(0,40);
