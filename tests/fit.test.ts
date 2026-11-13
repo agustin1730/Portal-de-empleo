@@ -94,3 +94,37 @@ test("assessment normalization deduplicates, bounds input and survives re-normal
  const normalized=await normalizeJob({title:"Sales",assessment});assert.deepEqual(normalized.assessment,assessment);
  assert.deepEqual((await normalizeJob({...normalized,title:"Updated"})).assessment,assessment);
 });
+
+test("industry and role combine within one experience, with source shown",()=>{
+ const candidate={...emptyProfile,experience:[{role:"Asesor comercial",company:"Concesionaria",industry:"Automotor",start:"2023-01",end:"2025-12",description:"Seguimiento de clientes.",tools:["Microsoft Excel"]}]};
+ const result=assessFit(job([req("experience","Experiencia en ventas en el rubro automotriz",3,true),req("skills","Excel")]),candidate,null,now);
+ assert.equal(result.score,100);assert.equal(result.version,"rules-v2");
+ assert.match(result.evidence[0].profileSource,/Concesionaria.*Automotor/);assert.match(result.evidence[1].profileSource,/Herramienta usada/);
+ assert.equal(assessFit(job([req("experience","Ventas en gastronomía",1,true),req("skills","Excel")]),candidate,null,now).evidence[0].status,"unknown");
+});
+test("unrelated jobs and interested industries never combine to prove sector experience",()=>{
+ const candidate={...emptyProfile,preferences:{...emptyProfile.preferences,industries:"Automotriz"},experience:[{role:"Ventas",company:"Tienda",industry:"Comercio",start:"2020-01",end:"2025-12",description:"Ventas."},{role:"Administración",company:"Concesionaria",industry:"Automotriz",start:"2020-01",end:"2025-12",description:"Facturación."}],skills:["Excel"]};
+ const result=assessFit(job([req("experience","Ventas en automotriz",3,true),req("skills","Excel")]),candidate,null,now);
+ assert.equal(result.evidence[0].status,"unknown");assert.equal(result.label,"Requisito obligatorio por confirmar");
+});
+test("only time in the requested industry counts and tools alone do not prove tool tenure",()=>{
+ const candidate={...emptyProfile,experience:[{role:"Ventas",company:"A",industry:"Automotriz",start:"2025-01",end:"2025-12",description:"Ventas.",tools:["Excel"]},{role:"Ventas",company:"B",industry:"Gastronomía",start:"2020-01",end:"2024-12",description:"Ventas."}]};
+ const result=assessFit(job([req("experience","Ventas en automotriz",3),req("skills","Excel")]),candidate,null,now);
+ assert.equal(result.evidence[0].status,"gap");assert.match(result.evidence[0].explanation,/12 meses/);assert.equal(result.evidence[1].status,"matched");
+ assert.equal(assessFit(job([req("experience","Excel",3),req("skills","Excel")]),candidate,null,now).evidence[0].status,"unknown");
+});
+test("structured tools respect negations, levels and lack of dates",()=>{
+ const base={role:"Ventas",company:"A",industry:"Automotriz",start:"2023",end:"2025",description:"Sin experiencia en automotriz. No manejo Excel.",tools:["Excel"]};
+ let result=assessFit(job([req("experience","Ventas en automotriz",1),req("skills","Excel")]),{...emptyProfile,experience:[base]},null,now);
+ assert.ok(result.evidence.every(row=>row.status==="unknown"));
+ result=assessFit(job([req("experience","Ventas en automotriz",1),req("skills","Excel avanzado")]),{...emptyProfile,experience:[{...base,description:"Ventas."}]},null,now);
+ assert.ok(result.evidence.every(row=>row.status==="unknown"));assert.match(result.evidence[0].explanation,/fechas completas/);
+});
+test("skill context is visible and editing a structured tool recalculates the result",()=>{
+ const spec=job([req("skills","Excel"),req("skills","CRM")]);
+ const candidate={...emptyProfile,experience:[{role:"Ventas",company:"A",start:"",end:"",description:"",tools:["Excel","CRM"]}]};
+ assert.equal(assessFit(spec,candidate,null,now).score,100);
+ assert.equal(assessFit(spec,{...candidate,experience:[{...candidate.experience[0],tools:["Excel"]}]},null,now).score,50);
+ const declared={...emptyProfile,skills:["Excel","CRM"],skillEvidence:[{skill:"Excel",context:"Reportes mensuales"}]};
+ assert.match(assessFit(spec,declared,null,now).evidence[0].profileSource,/Reportes mensuales/);
+});
