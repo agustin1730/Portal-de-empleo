@@ -70,3 +70,14 @@ test("academic education and courses save together without losing their classifi
  const moved=structuredClone(education);moved[0]={...moved[0],kind:"course"};
  assert.deepEqual(normalizeSection("education",{education:moved}),{education:moved});
 });
+
+test("experience editor preserves legacy dates and bounds its new fields",()=>{
+ const original={role:"Ventas",company:"Empresa",start:"2023",end:"2025",description:"Tareas"};
+ assert.deepEqual(normalizeSection("experience",{experience:[original]}),{experience:[original]});
+ const edited={...original,industry:"Comercio",employmentType:"Tiempo completo",location:"Buenos Aires",modality:"Híbrido",tools:["Excel","CRM"]};
+ assert.deepEqual(normalizeSection("experience",{experience:[edited,original]}),{experience:[edited,original]});
+ assert.throws(()=>normalizeSection("experience",{experience:[{...edited,tools:Array(41).fill("Excel")}]}));
+ assert.throws(()=>normalizeSection("experience",{experience:[{...edited,location:"x".repeat(201)}]}));
+ assert.throws(()=>normalizeSection("experience",{experience:[{...edited,start:"2025-10",end:"2025-03"}]}));
+ assert.deepEqual(normalizeSection("experience",{experience:[{...edited,tools:["Excel","Excel",""]}]}).experience?.[0].tools,["Excel"]);
+});
