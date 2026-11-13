@@ -15,6 +15,10 @@ A personal job tracker with Spanish UI, built with Next.js, React and Supabase. 
 
 The app can track any career direction. Personal display names are loaded from the signed-in account, not committed to the repository. Fit scores are estimates of documented compatibility, never hiring probabilities. No applications are submitted automatically.
 
+## Mi perfil
+
+The private profile is available at `/?vista=perfil`. It supports contact details, a professional summary, experience, education, skills, languages, and a written cover letter. The CV and attached cover letter accept PDF files up to 3 MB; the profile photo accepts JPG/PNG up to 2 MB. Files and profile data are owner-only through authenticated API routes and database RLS. The current version stores bounded attachments privately in Postgres; it does not extract PDF content or calculate a new fit score. The profile starts empty, without mockup sample data.
+
 ## Setup
 
 1. Import this repository into a Vercel project. Framework: Next.js. Build: npm run build.
