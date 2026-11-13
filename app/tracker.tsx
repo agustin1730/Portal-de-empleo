@@ -36,14 +36,14 @@ export default function Tracker({displayName="Mi perfil",initialSection="todos"}
  return <div className="workspace">
  <aside className="sidebar">
   <a href="/" className="brand"><div className="brand-icon"><BriefcaseBusiness size={22}/></div><span>mi búsqueda<span className="brand-dot">.</span></span></a>
-  <div className="space-label">MI ESPACIO</div>
+  
   <nav aria-label="Navegación principal"><button className={section!=="basura"?"nav-item active":"nav-item"} onClick={()=>setSection("todos")}><LayoutGrid size={18}/><span>Oportunidades</span><b>{activeCount}</b></button>
   <a href="/" className="nav-item"><LayoutGrid size={18}/><span>CRM de postulaciones</span><b>{jobs.filter(j=>["postulado","contactado","entrevista","oferta"].includes(j.status)).length}</b></a><a href="/?vista=basura" className={"nav-item "+(section==="basura"?"active":"")}><Trash2 size={18}/><span>Basura</span><b>{counts.descartado||0}</b></a><a href="/?vista=perfil" className="nav-item"><FileText size={17}/><span>Mi perfil</span></a></nav>
   <div className="sidebar-bottom"><button className="connection-card" onClick={()=>setModal("connection")}><span className="connection-icon"><Sparkles size={18}/></span><span><strong>Tu asistente de búsqueda</strong><small>Sumá empleos con ayuda de IA</small></span><ChevronRight size={15}/></button>
-  <button className="profile-button" onClick={()=>setModal("profile")}><div className="avatar">{displayName.split(" ").slice(0,2).map(s=>s[0]).join("").toUpperCase()}</div><span><strong>{displayName}</strong><small>Espacio personal y privado</small></span><SlidersHorizontal size={16}/></button></div>
+  <button className="profile-button" onClick={()=>setModal("profile")}><div className="avatar">{displayName.split(" ").slice(0,2).map(s=>s[0]).join("").toUpperCase()}</div><span><strong>{displayName}</strong></span><SlidersHorizontal size={16}/></button></div>
  </aside>
  <div className="main-shell">
-  <header className="topbar"><span><span className="breadcrumb">Mi espacio</span><ChevronRight size={14}/>{section==="todos"?"Oportunidades":(section==="basura"?"Basura":stageName(section))}</span><span className="private-badge"><ShieldCheck size={14}/> Solo vos</span></header>
+  <header className="topbar"><span>{section==="todos"?"Oportunidades":(section==="basura"?"Basura":stageName(section))}</span><span className="private-badge"><ShieldCheck size={14}/> Solo vos</span></header>
   <main>
    <section className="page-heading"><div><div className="eyebrow">CADA PASO CUENTA</div><h1>{section==="todos"?"Tu próximo paso empieza acá.":stageName(section)}</h1><p>{section==="todos"?"Todas tus oportunidades, con espacio para decidir.":section==="basura"?"Los empleos descartados se conservan acá. Podés restaurarlos cuando quieras.":"Un lugar para seguir cada avance de tu búsqueda."}</p></div><button className="button primary" onClick={()=>setModal("add")}><Plus size={17}/>Agregar empleo</button></section>
    <section className="overview" aria-label="Resumen de postulaciones">
