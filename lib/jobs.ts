@@ -1,3 +1,5 @@
+import {assessFit,normalizeAssessment} from "./fit";
+import {emptyProfile} from "./profile-data";
 import {createClient} from "./supabase/server";
 import {normalizeJob,statuses} from "./job-data";
 export {statuses} from "./job-data";
@@ -17,7 +19,8 @@ export async function listJobs(owner:string){
   const {data,error}=await db.from("jobs").select("*").eq("owner_id",owner).order("created_at",{ascending:false}).order("id").range(start,start+499);
   fail(error);rows.push(...(data||[]));if(!data||data.length<500)break;
  }
- return rows.map(r=>({...r.payload,id:r.id,status:r.status,notes:r.notes,applied_at:r.applied_at,created_at:r.created_at,updated_at:r.updated_at}));
+ const {data:profile,error:profileError}=await db.from("candidate_profiles").select("data,updated_at").eq("owner_id",owner).maybeSingle();fail(profileError);
+ return rows.map(r=>{const fit=assessFit(r.payload,profile?{...emptyProfile,...profile.data}:null,profile?.updated_at||null);return {...r.payload,score:fit.score,fit,id:r.id,status:r.status,notes:r.notes,applied_at:r.applied_at,created_at:r.created_at,updated_at:r.updated_at};});
 }
 export async function importJobs(owner:string,items:Data[]){
  if(!Array.isArray(items)||items.length<1||items.length>300)throw new Error("Importá entre 1 y 300 empleos.");
@@ -41,6 +44,7 @@ export async function updateJob(owner:string,id:string,patch:Data){
  const db=await createClient(),changes:Data={updated_at:new Date().toISOString()};
  const payloadFields={company:200,title:250,location_label:200,contact:200,email:254,phone:80};
  const payloadPatch:Data={};
+ if(patch.assessment!==undefined)payloadPatch.assessment=normalizeAssessment(patch.assessment);
  for(const [field,limit] of Object.entries(payloadFields)){
   if(patch[field]===undefined)continue;
   if(typeof patch[field]!=="string"||patch[field].length>limit)throw new Error("Datos de contacto o postulación no válidos.");
@@ -62,5 +66,7 @@ export async function updateJob(owner:string,id:string,patch:Data){
   if(data.status!=="postulado"&&!data.applied_at)changes.applied_at=new Date().toISOString().slice(0,10);
  }
  const {data,error}=await db.from("jobs").update(changes).eq("owner_id",owner).eq("id",id).select("id,status,notes,applied_at").single();
- fail(error);if(!data)throw new Error("No se encontró el empleo.");return {...payloadPatch,...data};
+ fail(error);if(!data)throw new Error("No se encontró el empleo.");
+ if(changes.payload){const {data:profile,error:profileError}=await db.from("candidate_profiles").select("data,updated_at").eq("owner_id",owner).maybeSingle();fail(profileError);const fit=assessFit(changes.payload,profile?{...emptyProfile,...profile.data}:null,profile?.updated_at||null);return {...payloadPatch,...data,fit,score:fit.score};}
+ return {...payloadPatch,...data};
 }

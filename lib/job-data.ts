@@ -1,3 +1,4 @@
+import {normalizeAssessment} from "./fit.ts";
 export const statuses = ["pendiente","guardado","por_postular","postulado","contactado","entrevista","oferta","descartado"] as const;
 type Data = Record<string, any>;
 const bounded=(x:any,n=2000)=>typeof x==="string"?x.slice(0,n):"";
@@ -11,7 +12,7 @@ export async function normalizeJob(x:Data){
  const id=typeof x.id==="string"&&/^[a-zA-Z0-9_-]{1,80}$/.test(x.id)?x.id:derived;
  const score=typeof x.score==="number"&&Number.isFinite(x.score)?Math.max(0,Math.min(100,Math.round(x.score))):null;
  const arr=(v:any)=>Array.isArray(v)?v.slice(0,10).map(x=>bounded(x,500)):[];
- return {id,title:bounded(x.title,250),title_original:bounded(x.title_original,250),company,
+ return {assessment:x.assessment?normalizeAssessment(x.assessment):null,description:bounded(x.description,24000),id,title:bounded(x.title,250),title_original:bounded(x.title_original,250),company,
   portal:bounded(x.portal,60)||"Otro",industry:bounded(x.industry,200)||"Sector a confirmar",
   url,gmail_url:safeUrl(x.gmail_url),company_logo_url:safeUrl(x.company_logo_url),
   location_label:bounded(x.location_label||x.location,200)||"Ubicación a confirmar",

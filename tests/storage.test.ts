@@ -10,7 +10,8 @@ test("Postgres enforces ownership and imports preserve application decisions",as
   await db.exec(await readFile(new URL("../supabase/migrations/202611120001_jobs.sql",import.meta.url),"utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/20261112200430_add_crm_contacted_stage.sql",import.meta.url),"utf8"));
   await db.exec(`set role authenticated;set request.jwt.claim.sub='${a}';`);
-  const record={id:"job-1",payload:{title:"Vendedor",company:"QA"},status:"postulado",notes:"Keep this decision",applied_at:"2026-11-10"};
+  const assessment={description:"Actual vacancy text",complete:true,requirements:[{category:"skills",text:"Excel",required:true,years:null}]};
+  const record={id:"job-1",payload:{title:"Vendedor",company:"QA",assessment},status:"postulado",notes:"Keep this decision",applied_at:"2026-11-10"};
   const first=await db.query("select public.import_jobs($1::jsonb) as result",[JSON.stringify([record])]);
   assert.deepEqual(first.rows[0].result,{added:1,updated:0,total:1});
   const next={...record,payload:{title:"Vendedor actualizado"},status:"descartado",notes:"Must not replace",applied_at:null};
@@ -20,6 +21,7 @@ test("Postgres enforces ownership and imports preserve application decisions",as
   assert.equal(saved.rows[0].status,"postulado");assert.equal(saved.rows[0].notes,"Keep this decision");
   assert.equal(saved.rows[0].applied_at_text,"2026-11-10");assert.equal(saved.rows[0].payload.company,"QA");
   assert.equal(saved.rows[0].payload.title,"Vendedor actualizado");
+  assert.deepEqual(saved.rows[0].payload.assessment,assessment);
   await db.query("update public.jobs set status='contactado',payload=payload||$1::jsonb where id='job-1'",[JSON.stringify({contact:"Recruiter",email:"recruiter@example.com",phone:"+54 11 5555 0100"})]);
   await db.query("select public.import_jobs($1::jsonb)",[JSON.stringify([{...next,payload:{title:"New analysis"}}])]);
   const crm=(await db.query("select status,payload,notes from public.jobs where id='job-1'")).rows[0];
