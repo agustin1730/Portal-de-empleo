@@ -46,7 +46,7 @@ export default function Tracker({displayName="Mi perfil",initialSection="todos"}
   <button className="profile-button" onClick={()=>setModal("profile")}><div className="avatar">{displayName.split(" ").slice(0,2).map(s=>s[0]).join("").toUpperCase()}</div><span><strong>{displayName}</strong></span><SlidersHorizontal size={16}/></button></div>
  </aside>
  <div className="main-shell">
-  <header className="topbar"><span>{section==="todos"?"Oportunidades":(section==="basura"?"Basura":stageName(section))}</span></header>
+
   <main>
    <section className="page-heading"><div><h1>{section==="todos"?"Tu próximo paso empieza acá.":stageName(section)}</h1>{section!=="todos"&&<p>{section==="basura"?"Los empleos descartados se conservan acá. Podés restaurarlos cuando quieras.":"Un lugar para seguir cada avance de tu búsqueda."}</p>}</div><button className="button primary" onClick={()=>setModal("add")}><Plus size={17}/>Agregar empleo</button></section>
    <section className="overview" aria-label="Resumen de postulaciones">
@@ -55,7 +55,7 @@ export default function Tracker({displayName="Mi perfil",initialSection="todos"}
     <button onClick={()=>window.location.assign("/")}><span className="stat-icon amber"><MessageSquare size={20}/></span><span><small>Entrevistas</small><strong>{loading?"—":counts.entrevista||0}</strong></span><ArrowUpRight size={17}/></button>
    </section>
    <section className="collection">
-    <div className="collection-heading"><div><h2>{section==="todos"?"Explorá tus oportunidades":stageName(section)} <span>{filtered.length}</span></h2><p>Tu decisión se guarda. La afinidad compara el aviso con tu perfil actual.</p></div><div className="tools"><button className="text-button" disabled={loading} onClick={()=>void load()}><RefreshCw size={15}/>Recalcular afinidad</button><button className="text-button" onClick={()=>fileRef.current?.click()} disabled={busy==="import"}><Upload size={15}/>{busy==="import"?"Importando…":"Importar"}</button><button className="text-button" onClick={exportData} disabled={!jobs.length}><Download size={15}/>Exportar</button></div></div>
+    <div className="collection-heading"><div><h2>{section==="todos"?"Explorá tus oportunidades":stageName(section)} <span>{filtered.length}</span></h2></div><div className="tools"><button className="text-button" disabled={loading} onClick={()=>void load()}><RefreshCw size={15}/>Recalcular afinidad</button><button className="text-button" onClick={()=>fileRef.current?.click()} disabled={busy==="import"}><Upload size={15}/>{busy==="import"?"Importando…":"Importar"}</button><button className="text-button" onClick={exportData} disabled={!jobs.length}><Download size={15}/>Exportar</button></div></div>
     <input ref={fileRef} type="file" accept=".json,application/json" className="hidden" aria-label="Importar empleos JSON" onChange={e=>{if(e.target.files?.[0])importData(e.target.files[0]);}}/>
     {jobs.length>0&&jobs.every(j=>j.fit?.missing==="profile")&&<div className="fit-profile-prompt"><span>Completá tu experiencia, habilidades o educación para evaluar las oportunidades con tu perfil.</span><a href="/?vista=perfil">Completar Mi perfil ↗</a></div>}
     <div className="filterbar"><label className="search-box"><Search size={18}/><input aria-label="Buscar empleo, empresa o ubicación" placeholder="Buscar puesto, empresa o ubicación…" value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button onClick={()=>setSearch("")} aria-label="Borrar búsqueda"><X size={15}/></button>}</label>
