@@ -17,7 +17,11 @@ The app can track any career direction. Personal display names are loaded from t
 
 ## Mi perfil
 
-The private profile is available at `/?vista=perfil`. It supports contact details, a professional summary, experience, education, skills, languages, and a written cover letter. The CV and attached cover letter accept PDF files up to 3 MB; the profile photo accepts JPG/PNG up to 2 MB. Files and profile data are owner-only through authenticated API routes and database RLS. The current version stores bounded attachments privately in Postgres; it does not extract PDF content or calculate a new fit score. The profile starts empty, without mockup sample data.
+The private profile is available at `/?vista=perfil`. It supports contact details, a professional summary, experience, education, skills, languages, and a written cover letter. The CV and attached cover letter accept PDF files up to 3 MB; the profile photo accepts JPG/PNG up to 2 MB. Files and profile data are owner-only through authenticated API routes and database RLS. Bounded attachments are stored privately in Postgres. The profile starts empty, without mockup sample data.
+
+**CV → draft → review → save → edit:** uploading a CV reads selectable PDF text locally in the browser using PDF.js, then applies deterministic Spanish/English section rules. This feature has no AI provider, API key or per-document processing fee. It accepts up to 10 pages and 80,000 characters; scanned/image-only and password-protected PDFs are unsupported. The versioned PDF worker is copied from the pinned dependency during predev/prebuild and served from the same origin.
+
+The draft shows extracted facts, uncertain data and original text. Nothing is uploaded or persisted until the user selects sections and explicitly accepts. Cancel leaves the profile and previous CV unchanged. Saving defaults to filling empty fields only; replacing selected sections requires choosing that option. Profile changes and the original CV are saved together in one owner-scoped transaction. Photo and cover letter remain unchanged. Each saved section can then be edited normally. Year-only dates stay year-only, and do not prove exact experience duration for affinity scores until months are completed. Column layouts and unfamiliar headings can require manual corrections; no qualification or missing month is invented. Ordinary hosting/database usage remains subject to the project's existing plan.
 
 ## Setup
 

@@ -10,3 +10,5 @@ next-env.d.ts
 /coverage/
 
 /supabase/.temp/
+
+/public/pdf.worker.*.min.mjs

@@ -66,7 +66,7 @@ function evaluateRequirement(r:Requirement,profile:Profile,now:Date):Evidence{
   if(!entries.length)return result("unknown","Mi perfil · Experiencia","No hay experiencia documentada que coincida con este requisito.");
   const source=entries.map(e=>`${e.role}${e.company?" · "+e.company:""}`).join("; ");
   if(r.years===null||r.years===0)return result("matched",source,"Coincide con las tareas o puestos registrados en tu perfil.");
-  if(entries.some(e=>!e.start))return result("unknown",source,"Faltan fechas para verificar la duración de tu experiencia relacionada.");
+  if(entries.some(e=>!/^\d{4}-(0[1-9]|1[0-2])$/.test(e.start)||e.ongoing===false&&!e.end||!!e.end&&!/^\d{4}-(0[1-9]|1[0-2])$/.test(e.end)))return result("unknown",source,"Faltan fechas completas (año y mes) para verificar la duración de tu experiencia relacionada.");
   const months=experienceMonths(entries,now),needed=Math.ceil(r.years*12);
   return result(months>=needed?"matched":"gap",source,`${months} meses documentados de ${needed} solicitados. Los períodos simultáneos cuentan una sola vez.`);
  }
@@ -74,7 +74,7 @@ function evaluateRequirement(r:Requirement,profile:Profile,now:Date):Evidence{
   const item=profile.education.find(e=>proves(r.text,e.title));
   if(!item)return result("unknown","Mi perfil · Educación","No se acredita esta formación en tu perfil.");
   const complete=/complet|finaliz|graduad/.test(fold(r.text));
-  if(complete&&(!item.end||item.end>now.toISOString().slice(0,7)))return result("unknown",item.title,"La formación figura, pero no hay una finalización confirmada.");
+  if(complete&&(!item.end||item.ongoing===true||item.end.length===4&&item.end>=String(now.getUTCFullYear())||item.end>now.toISOString().slice(0,7)))return result("unknown",item.title,"La formación figura, pero no hay una finalización confirmada.");
   return result("matched",`${item.title}${item.institution?" · "+item.institution:""}`,"La formación coincide con el requisito registrado.");
  }
  if(/\bingles\b/.test(canonical(r.text))){
