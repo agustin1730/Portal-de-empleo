@@ -12,3 +12,8 @@ next-env.d.ts
 /supabase/.temp/
 
 /public/pdf.worker.*.min.mjs
+
+# Private generated documents and working renders
+/output/
+/tmp/
+
