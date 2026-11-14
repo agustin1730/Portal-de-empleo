@@ -1,5 +1,10 @@
 # Portal de empleo · Mi búsqueda
 
+## Shared context / Contexto compartido
+
+Start with [project context](docs/context.md), [current state](docs/current-state.md), [architecture](docs/architecture.md), [roadmap](docs/roadmap.md), [decisions](docs/decisions.md) and [cross-environment workflow](docs/workflow.md). See the [repository review](docs/repository-review.md) for known synchronization issues. The historical sections below contain older Panorama and salary UI descriptions; current-state.md and the actual code take precedence for current behavior.
+
+
 A personal job tracker with Spanish UI, built with Next.js, React and Supabase. Designed for deployment from this GitHub repository to Vercel.
 
 ## Features
@@ -115,3 +120,4 @@ Affinity now combines the role, industry and tasks within each employment record
 The job detail shows work-condition comparisons independently of professional affinity: salary, modality, location and working hours. They recalculate from saved private preferences on each job read. Missing or incomparable data stays unconfirmed; salaries require explicit matching currency and period, overlapping ranges stay unknown, no FX or tax conversion is used, and location comparisons do not infer geography. The block contains no preferences-editing link. Imports can include an explicit hours field; otherwise only explicit schedule wording in the vacancy is used.
 
 Inicio is the default authenticated view; CRM remains at /?vista=crm. Its weekly metrics describe applications sent Monday-to-today in Argentina and their current stage, rather than inventing historic contact/interview timestamps. Four weekly application counts use saved applied_at dates; recent opportunities cover the last seven days. Tasks and actual Job Match run metadata are stored as private administrative keys dashboard_tasks/dashboard_review in the existing owner-scoped profile JSON, preserving CV content. /api/dashboard validates tasks and uses optimistic version checks; no new database grants or tables are needed. The daily review reports through report_job_review or the owner-filtered workflow in docs/job-review-reporting.md. No previous run is fabricated or backfilled as successful.
+
