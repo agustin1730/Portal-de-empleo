@@ -36,3 +36,8 @@ El usuario confirma las filas nuevas después de revisar el resumen. Las filas i
 
 Pruebas CSV y persistencia cubren delimitadores, comillas, estructura inválida, límites, selección de columnas, datos parciales, duplicados, preservación del perfil, conflictos y lotes inválidos sin escritura. No incluye exportación CSV ni cambios en /empresas.
 
+
+## Simplificación visual de Prospección
+
+Barra compacta con búsqueda, selector de rubro, botón Para hoy con estado activo, limpieza de filtros y selector Tablero/Tabla. Se elimina el contador global de empresas y su fila independiente. Las tarjetas Kanban muestran solo nombre y enlace web directo seguro; el resto de información permanece en el editor y en Tabla. Se elimina el selector de etapa de la tarjeta, conservando cambio por arrastre o editor/tabla. Datos privados y API sin cambios.
+
