@@ -4,6 +4,10 @@ Implementado 2026-11-16. En `/?vista=crm`, las pestañas Prospección y Postulac
 
 Cada empresa permite nombre, rubro, país/ubicación, sitio, fuente, puestos de interés, hasta diez contactos, notas, borrador de mensaje y una próxima acción con fecha. El tablero permite arrastrar tarjetas y ofrece un selector de etapa accesible. Para hoy incluye acciones vencidas y excluye empresas cerradas. Completar una acción la registra en el historial y limpia el pendiente. Cerrar una empresa la conserva en la última columna.
 
+## Vista de tabla
+
+Prospección permite alternar Tablero / Tabla. Kanban sigue como vista inicial. La tabla muestra empresa (rubro y país), contacto principal, etapa editable y próxima acción con fecha. Comparte búsqueda, filtro de rubro, Para hoy y el mismo editor de empresa; alternar vistas no cambia ni duplica registros. No agrega CSV ni modifica Postulaciones.
+
 ## Persistencia y privacidad
 
 `GET/POST /api/companies` requiere el mismo propietario confirmado que el resto del portal. `lib/company-pipeline-store.ts` guarda solo la nueva colección administrativa `candidate_profiles.data.crm_prospects`, mezclada con las claves anteriores y protegida por la RLS existente. El servidor exige la versión `updated_at` leída y realiza una actualización condicional por propietario y versión. Conflictos o fallos no se anuncian como guardados. Los datos iniciales están vacíos: no se importan catálogos ni ejemplos.
