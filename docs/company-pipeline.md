@@ -22,3 +22,8 @@ CSV, sincronización de correo, recordatorios externos, vinculación empresa-vac
 
 Tests de validación y transiciones en `tests/company-pipeline.test.ts`; tests del adaptador de persistencia con cliente simulado en `tests/company-pipeline-store.test.ts` verifican aislamiento por propietario, preservación del perfil y conflictos. La RLS existente tiene cobertura separada en storage/profile tests. Una prueba de adaptador no equivale a iniciar sesión en producción: comprobar en una sesión propietaria al crear, recargar y mover una empresa real.
 
+## Carga flexible de empresas
+
+Solo el nombre de empresa es obligatorio; la etapa inicial es Por investigar. Sitio web, datos adicionales, contactos, seguimiento y notas son opcionales. Datos adicionales, contactos y notas se agrupan en secciones desplegables. Los contactos pueden tener solo teléfono, cargo o correo; los vacíos se omiten. Los dominios sin protocolo se guardan con HTTPS.
+
+Acción y fecha son independientes. Sin fecha / Hoy / Mañana / Elegir fecha permiten programar el seguimiento en horario argentino. Una fecha sin acción se muestra como Seguimiento y también se puede marcar realizada. El cambio conserva tablero, tabla y persistencia privada.
