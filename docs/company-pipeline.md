@@ -41,3 +41,14 @@ Pruebas CSV y persistencia cubren delimitadores, comillas, estructura inválida,
 
 Barra compacta con búsqueda, selector de rubro, botón Para hoy con estado activo, limpieza de filtros y selector Tablero/Tabla. Se elimina el contador global de empresas y su fila independiente. Las tarjetas Kanban muestran solo nombre y enlace web directo seguro; el resto de información permanece en el editor y en Tabla. Se elimina el selector de etapa de la tarjeta, conservando cambio por arrastre o editor/tabla. Datos privados y API sin cambios.
 
+
+## Propiedades de selección
+
+El editor de empresa usa País con 195 opciones en español: 193 miembros ONU y dos observadores, etiquetas CLDR mediante Intl.DisplayNames. Fuente ofrece CESSI, Apollo, LinkedIn y Manual. Ambos permiten selección vacía y conservan explícitamente el valor actual si no está en el catálogo (incluidas ubicaciones históricas e importaciones CSV); no hay migración de datos. Rubro permite sugerencias de 18 sectores más rubros ya registrados, conservando escritura libre. Catálogos en lib/company-options.ts, sin dependencias ni servicios nuevos. CSV y validación del API siguen aceptando valores libres compatibles con registros existentes.
+
+## Etiquetas y tipografía
+
+Tarjetas con rubro y país como etiquetas de color suave, sitio web y próxima acción/fecha solo cuando existe. Etiquetas editables desde la tarjeta mediante menú con búsqueda; el mismo componente se usa para rubro, país y fuente en el editor. Escape y clic fuera cierran el menú, opciones accesibles por Tab y botones nativos. Rubro admite valores nuevos de hasta 200 caracteres. En tarjeta, elegir escribe con la versión actual mediante el guardado existente; el editor conserva el flujo guardar/cancelar. Los errores siguen el aviso del CRM. No hay escritura al abrir ni buscar en un menú.
+
+Inter sustituye DM Sans/Manrope como tipografía de texto de la app, con carga Google Fonts y fallback Arial; no se asegura identidad exacta con una fuente de imagen generada. Iconos Lucide existentes, consistentes con etiquetas y enlaces. No se agregan dependencias, APIs ni migraciones. El estilo global cubre encabezados y componentes con definiciones tipográficas anteriores sin alterar su distribución.
+
