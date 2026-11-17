@@ -1,0 +1,3 @@
+import {ArrowUpRight} from "lucide-react";
+export function originalOfferUrl(value:unknown){if(typeof value!=="string")return "";try{const u=new URL(value);return ["http:","https:"].includes(u.protocol)&&!u.username&&!u.password?u.href:"";}catch{return "";}}
+export default function OfferLink({url,title}:{url?:string;title?:string}){const href=originalOfferUrl(url);return href?<a className="button primary original-offer-link" href={href} target="_blank" rel="noopener noreferrer" draggable={false} aria-label={"Ver oferta original"+(title?" de "+title:"")+" (abre en otra pestaña)"}>Ver oferta<ArrowUpRight size={14}/></a>:null;}

@@ -3,3 +3,7 @@
 .crm-dialog form>footer{flex-wrap:wrap}.crm-dialog form>footer .crm-delete{margin-right:auto;color:#ad4f49;border-color:#edd7d3;background:#fff8f6}.crm-dialog form>footer .crm-delete:hover{background:#fbece8}.crm-dialog form>footer .form-error{flex-basis:100%;order:-1}
 
 .crm-board{grid-template-columns:repeat(4,minmax(194px,1fr))}@media(max-width:1000px){.crm-board{grid-template-columns:repeat(4,215px)}}
+
+.application-board{grid-template-columns:repeat(4,minmax(230px,1fr))}.application-card{padding:0!important;overflow:visible}.application-card-open{display:block;width:100%;text-align:left;padding:15px 12px;border-radius:8px;cursor:grab}.application-card>.original-offer-link{margin:0 12px 12px}.application-card-open p{display:flex;align-items:center;gap:5px;font-size:11px;color:#74877b}.application-card-open footer{font-size:11px}.application-card .crm-card-company strong{font-size:12px}.application-board .crm-column{transition:background-color 180ms,border-color 180ms}.application-board .application-card{transition:opacity 160ms,box-shadow 180ms}.crm-dialog-body>.original-offer-link{margin-bottom:20px}@media(prefers-reduced-motion:reduce){.application-board .application-card,.application-board .crm-column{transition:none}}
+
+.application-board .application-card:hover{transform:none}
