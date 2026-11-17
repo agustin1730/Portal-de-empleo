@@ -1,6 +1,6 @@
 # Actualización 1.0: conector de empresas
 
-Estado de esta entrega: código preparado para publicación. La migración remota fue rechazada por revisión automática y requiere aprobación explícita del propietario por cambiar RLS y permisos. No se habilitó OAuth ni se realizó una autorización real desde ChatGPT. Publicar el código no activa el acceso. No requiere Docker, Oracle, n8n ni una API de IA paga para consultar el CRM desde un chat.
+Estado actual: código publicado, migraciones de seguridad aplicadas, OAuth Server y hook habilitados, cliente manual PKCE registrado y permitido. Falta autorizar la conexión desde ChatGPT y verificar herramientas y renovación reales. No requiere Oracle, Docker, n8n ni API de IA paga.
 
 ## Alcance
 
@@ -45,7 +45,7 @@ on conflict(client_id) do update set resource=excluded.resource;
 1. Abrir ChatGPT web en una cuenta/espacio que permita crear MCP personalizados.
 2. En Plugins, pulsar `+` → Add custom MCP server. En interfaces anteriores: Configuración → Apps → Crear app, habilitando modo desarrollador si esa interfaz lo requiere.
 3. Nombre: `Mi búsqueda · Empresas`.
-4. URL: `https://portal-de-empleo.vercel.app/mcp/companies` (esta ruta todavía no se publicó).
+4. URL: `https://portal-de-empleo.vercel.app/mcp/companies`.
 5. Autenticación: OAuth, con el cliente predefinido que se registró en Supabase. No seleccionar sin autenticación. Si la interfaz no ofrece el mecanismo manual requerido, detener la configuración y revisar compatibilidad; no hacer públicos los datos para sortearlo.
 6. Completar el inicio de sesión del portal y aprobar el acceso a empresas e investigaciones. Escanear las cuatro herramientas y crear/instalar la conexión.
 7. En un chat nuevo seleccionar el conector y pedir: `Buscá Xubio en mi CRM y mostrame sus datos, sin modificar nada.`
@@ -88,3 +88,27 @@ Revisadas el 17/11/2026. Las pantallas y disponibilidad pueden cambiar.
 - Smoke HTTP del build local con configuración ficticia aislada: POST MCP sin token 401 con challenge, GET MCP 405, metadata 200, tres APIs privadas 401 y consentimiento sin sesión 307 al login conservando authorization_id. El servidor de prueba se apagó al terminar. No se probaron tokens reales ni un acceso autenticado a Supabase.
 - Revisión React: hooks con cancelación de lecturas al cerrar/cambiar empresa, carga de informe bajo demanda, botones de acción type=button dentro del formulario, texto escapado por React y estilos mediante variables del tema existente. Sin rediseño general.
 - Sin despliegue, migración remota, clientes OAuth reales, hook activo o instalación efectiva en ChatGPT. Esas verificaciones siguen pendientes y no se infieren del build.
+
+
+### 2026-11-17 — Actualización 1.0 publicada; activación OAuth bloqueada
+
+Producción Vercel READY dpl_CfVMnVEBVLQ1stPj3ojuNSdczKnQ, commit 2e1d0501914a420b11a53829de5692570e0871ee, árbol 86b18e98f3cc0ea0cfb535256d0b6166a8a37e24. Alias portal-de-empleo.vercel.app confirmado. Lote aislado de 28 archivos sobre producción anterior: 98/98 tests y build aprobados; no incluye cambios CESSI ni otros cambios concurrentes. HTTP público: metadata del recurso 200 con URLs correctas, MCP GET 405 por transporte stateless, POST sin token 401 con challenge.
+
+NO está instalada la conexión en ChatGPT. OAuth de Supabase sigue devolviendo feature_disabled. La revisión automática rechazó apply_migration company_mcp_research por modificar en producción una frontera de acceso (RLS, funciones y permisos) sin autorización suficientemente específica; no se intentó eludir el rechazo. Lectura posterior confirmó que company_research y crm_company_data aún no existen. Se requiere autorización explícita del usuario para aplicar esa migración y habilitar/configurar OAuth, hook y cliente. Acceso visual al panel se detuvo por imposibilidad de verificar la URL del navegador; no se cambió configuración por UI. Mantener los accesos fail-closed hasta completar seguridad y probar OAuth real.
+
+
+### 2026-11-17 — Migración 1.0 autorizada y aplicada; login del panel pendiente
+
+El usuario autorizó explícitamente la migración de producción y habilitar OAuth. Supabase apply_migration company_mcp_research devolvió success:true. Verificación remota confirmó public.company_research, crm_company_data y company_connector_access_token, más las políticas restrictivas profile_no_oauth, files_no_oauth y jobs_no_oauth. Prueba SQL con contexto OAuth transaccional: cero filas accesibles en perfil, archivos y empleos, y cliente sin registrar rechazado por el RPC; resultado oauth_privacy_checks_passed:true. No se modificaron registros profesionales ni CRM.
+
+La autorización anterior resuelve el rechazo automático: no pedirla de nuevo para el mismo alcance. Código sigue publicado en 2e1d0501914a420b11a53829de5692570e0871ee. OAuth sigue pendiente de activar, registrar cliente/callback, habilitar hook y variable Vercel. No se creó un token ni se instaló la conexión ChatGPT. Panel Supabase abierto en IAB, pestaña 7, muestra sign-in; se solicitó al usuario iniciar sesión allí y responder Ya ingresé. Pestaña marcada para handoff. No confundir la conexión técnica del plugin Supabase con una sesión del dashboard ni extraer credenciales.
+
+
+### 2026-11-17 — OAuth habilitado y hook activo; callback de ChatGPT pendiente
+
+Con confirmación explícita al momento de la acción, se activó OAuth Server en el panel Supabase, Authorization Path /oauth/consent; registro dinámico permanece apagado. Se guardó el Site URL del portal de producción (antes localhost). Discovery de Supabase responde 200 con authorization_code, refresh_token y PKCE S256. Hook company_connector_access_token habilitado en el panel. Se aplicó además company_oauth_claim_binding para aceptar client_id dentro de claims (formato documentado del hook) y conservar compatibilidad con evento superior. No se emitieron credenciales ni se creó aún un cliente OAuth: falta el callback exacto que ChatGPT muestre para esa conexión. El usuario pidió instrucciones para encontrarlo. No cambiar por una URL supuesta. Faltan cliente en Supabase, registro privado, variable MCP_COMPANY_CLIENT_IDS y prueba real de consentimiento/renovación.
+
+
+### 2026-11-17 — Cliente dedicado configurado
+
+OAuth Server activo, Site URL de producción comprobado tras navegación y hook company_connector_access_token ENABLED. Se creó desde el panel un cliente público manual con PKCE, usando exclusivamente el callback específico aportado por el usuario. Registro dinámico continúa desactivado. Cliente habilitado en company_connector_private.oauth_clients y variable Vercel MCP_COMPANY_CLIENT_IDS de producción; no se creó ni se compartió un client secret. Compatibilidad del hook con client_id anidado en claims cubierta por migración company_oauth_claim_binding aplicada y prueba SQL/PGlite aprobada. Falta autorización e inicio de sesión del propietario desde ChatGPT y verificación real de herramientas/renovación. No declarar instalado hasta observar ese resultado.

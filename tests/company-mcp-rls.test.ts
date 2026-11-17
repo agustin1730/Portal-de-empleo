@@ -9,6 +9,7 @@ test("OAuth sees only own companies and reports; private data, edits, stale writ
   await db.exec(`create role anon;create role authenticated;create role supabase_auth_admin;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid);create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;create function auth.uid() returns uuid language sql stable as $$select (auth.jwt()->>'sub')::uuid$$;grant usage on schema auth to authenticated;grant execute on all functions in schema auth to authenticated;`);
   for(const file of ["202611120001_jobs.sql","20261113110353_add_private_candidate_profile.sql"]){await db.exec(await readFile(new URL("../supabase/migrations/"+file,import.meta.url),"utf8"));}
   const migration=(await readdir(new URL("../supabase/migrations/",import.meta.url))).find(n=>n.endsWith("_company_mcp_research.sql"));assert.ok(migration);await db.exec(await readFile(new URL("../supabase/migrations/"+migration,import.meta.url),"utf8"));
+  await db.exec(await readFile(new URL("../supabase/migrations/20261117181454_company_oauth_claim_binding.sql",import.meta.url),"utf8"));
   await db.query("insert into company_connector_private.oauth_clients values($1,$2)",[session,"https://portal.test/mcp/companies"]);
   await db.query("insert into auth.users values($1),($2)",[owner,other]);await db.query("insert into auth.sessions values($1,$2)",[session,owner]);
   for(const id of [owner,other])await db.query("insert into candidate_profiles(owner_id,data) values($1,$2)",[id,JSON.stringify({summary:"Secret CV",crm_prospects:[{id:id===owner?"a":"b",name:"Example",contacts:[{name:"Contact"}]}]})]);
@@ -17,6 +18,7 @@ test("OAuth sees only own companies and reports; private data, edits, stale writ
   const baseClaims={sub:owner,aud:"authenticated",resource:"untrusted",role:"authenticated"};
   await db.exec("set role supabase_auth_admin");
   const hooked:any=(await db.query("select public.company_connector_access_token($1) as data",[JSON.stringify({client_id:session,claims:baseClaims})])).rows[0];
+  const nested:any=(await db.query("select public.company_connector_access_token($1) as data",[JSON.stringify({claims:{...baseClaims,client_id:session}})])).rows[0];assert.equal(nested.data.claims.resource,"https://portal.test/mcp/companies");
   assert.equal(hooked.data.claims.resource,"https://portal.test/mcp/companies");assert.equal(hooked.data.claims.aud,"authenticated");
   const normal:any=(await db.query("select public.company_connector_access_token($1) as data",[JSON.stringify({claims:baseClaims})])).rows[0];assert.equal(normal.data.claims.resource,undefined);assert.equal(normal.data.claims.sub,owner);
   await db.exec("reset role;set role authenticated");await claims(owner);
