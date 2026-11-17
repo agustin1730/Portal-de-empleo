@@ -10,7 +10,6 @@ import CompanyProperty from "./company-property";
 import {companyCountries,companySources,companyIndustries} from "../lib/company-options";
 import {exportCompaniesCsv,selectedCompanies,companyExportFilename} from "../lib/company-export";
 const today=()=>followUpDay();
-function companyWebsite(value:string){try{const url=new URL(value);if(!["https:","http:"].includes(url.protocol)||url.username||url.password)return null;return {href:url.href,label:url.hostname.replace(/^www\./,"")};}catch{return null;}}
 
 const emptyCompany=(stage:CompanyStage):CompanyLead=>({id:crypto.randomUUID(),name:"",industry:"",country:"",website:"",source:"",roles:"",stage,contacts:[],notes:"",nextAction:"",nextDate:"",message:"",activity:[]});
 export default function CompanyPipeline(){

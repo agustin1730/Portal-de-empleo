@@ -6,5 +6,5 @@ export function CompanyNetworkIcon({kind,size=18}:{kind:CompanyLinkKind;size?:nu
 }
 export default function CompanyNetworks({company}:{company:{name:string;website?:string;linkedin?:string;instagram?:string}}){
  const links=companyLinkFields.map(field=>({...field,href:companyLinkHref(company[field.key],field.key)})).filter(field=>field.href);
- return links.length?<div className="company-network-links" aria-label="Enlaces de la empresa">{links.map(link=><a key={link.key} href={link.href} target="_blank" rel="noopener noreferrer" draggable={false} title={link.label} aria-label={"Abrir "+link.label+" de "+(company.name||"empresa sin nombre")+" (otra pestaña)"}><CompanyNetworkIcon kind={link.key}/></a>)}</div>:null;
+ return links.length?<div className="company-network-links company-network-icons-only" aria-label="Enlaces de la empresa">{links.map(link=><a key={link.key} href={link.href} target="_blank" rel="noopener noreferrer" draggable={false} title={link.label} aria-label={"Abrir "+link.label+" de "+(company.name||"empresa sin nombre")+" (otra pestaña)"}><CompanyNetworkIcon kind={link.key}/></a>)}</div>:null;
 }
