@@ -1,7 +1,8 @@
+import {normalizeCompanyLink} from "./company-links.ts";
 export const companyStages=["Por investigar","Por contactar","Contactada","En conversación","Cerrada"] as const;
 export type CompanyStage=typeof companyStages[number];
 export type CompanyContact={name:string;role:string;email:string;phone:string;linkedin?:string};
-export type CompanyLead={id:string;name:string;industry:string;country:string;website:string;source:string;roles:string;stage:CompanyStage;contacts:CompanyContact[];notes:string;nextAction:string;nextDate:string;message:string;activity:{text:string;at:string}[]};
+export type CompanyLead={id:string;name:string;industry:string;country:string;website:string;linkedin?:string;instagram?:string;source:string;roles:string;stage:CompanyStage;contacts:CompanyContact[];notes:string;nextAction:string;nextDate:string;message:string;activity:{text:string;at:string}[]};
 const str=(value:unknown,max:number)=>{if(value===undefined)return "";if(typeof value!=="string"||value.length>max)throw new Error("Campo inválido o demasiado extenso.");return value.trim();};
 export function followUpDay(offset:0|1=0,now=new Date()){
  const day=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Argentina/Buenos_Aires",year:"numeric",month:"2-digit",day:"2-digit"}).format(now);
@@ -15,7 +16,7 @@ export function normalizeCompany(input:unknown):CompanyLead{
  const nextAction=str(r.nextAction,300);
  if(r.contacts!==undefined&&!Array.isArray(r.contacts)||Array.isArray(r.contacts)&&r.contacts.length>10)throw new Error("Máximo 10 contactos por empresa.");
  const contacts=((r.contacts||[]) as unknown[]).map(c=>{if(!c||typeof c!=="object"||Array.isArray(c))throw new Error("Contacto no válido.");const v=c as Record<string,unknown>,name=str(v.name,200),role=str(v.role,200),email=str(v.email,254),phone=str(v.phone,80);let linkedin=str(v.linkedin,2000);if(linkedin){let url;try{url=new URL(/^[a-z][a-z\d+.-]*:/i.test(linkedin)?linkedin:"https://"+linkedin);}catch{throw new Error("Revisá el LinkedIn del contacto.");}if(!["http:","https:"].includes(url.protocol)||url.username||url.password||!(url.hostname==="linkedin.com"||url.hostname.endsWith(".linkedin.com")))throw new Error("Usá un enlace válido de LinkedIn.");linkedin=url.href;}if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error("Correo no válido.");return {name,role,email,phone,linkedin};}).filter(c=>c.name||c.role||c.email||c.phone||c.linkedin);
- return {id,name,stage:stage as CompanyStage,website,industry:str(r.industry,200),country:str(r.country,200),source:str(r.source,200),roles:str(r.roles,300),notes:str(r.notes,12000),nextAction,nextDate,contacts,message:str(r.message,5000),activity:[]};
+ return {id,name,stage:stage as CompanyStage,website,linkedin:normalizeCompanyLink(str(r.linkedin,2000),"linkedin"),instagram:normalizeCompanyLink(str(r.instagram,2000),"instagram"),industry:str(r.industry,200),country:str(r.country,200),source:str(r.source,200),roles:str(r.roles,300),notes:str(r.notes,12000),nextAction,nextDate,contacts,message:str(r.message,5000),activity:[]};
 }
 export function changeCompany(rows:CompanyLead[],input:unknown,now=new Date().toISOString()){
  if(!input||typeof input!=="object")throw new Error("Acción inválida.");const body=input as Record<string,unknown>;const lead=normalizeCompany(body.company),old=rows.find(r=>r.id===lead.id);

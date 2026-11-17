@@ -1,7 +1,7 @@
 import {changeCompany,normalizeCompany,type CompanyLead} from "./company-pipeline-data.ts";
 
 export const csvFields=[
- ["name","Empresa"],["website","Sitio web"],["industry","Rubro"],["country","Ubicación"],
+ ["companyLinkedin","LinkedIn de la empresa"],["companyInstagram","Instagram de la empresa"],["name","Empresa"],["website","Sitio web"],["industry","Rubro"],["country","Ubicación"],
  ["source","Fuente"],["roles","Puestos de interés"],["stage","Etapa"],["contactName","Contacto"],
  ["email","Correo"],["linkedin","LinkedIn del contacto"],["phone","Teléfono"],["contactRole","Cargo del contacto"],
  ["nextAction","Próxima acción"],["nextDate","Fecha de seguimiento"],["notes","Notas"],
@@ -9,7 +9,7 @@ export const csvFields=[
 export type CsvField=typeof csvFields[number][0];
 export type CsvTable={headers:string[];rows:string[][]};
 const key=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
-const aliases:Record<CsvField,string[]>={name:["empresa","compania","company","name","nombre","razon social"],website:["sitio web","website","web","url"],industry:["rubro","industria","industry","sector"],country:["ubicacion","pais","country","location","ciudad"],source:["fuente","source","origen"],roles:["puestos de interes","puestos","roles"],stage:["etapa","stage","estado"],contactName:["contacto","nombre contacto","contact name"],email:["correo","email","mail"],linkedin:["linkedin","linkedin contacto","linkedin del contacto","contact linkedin"],phone:["telefono","phone","celular"],contactRole:["cargo del contacto","cargo","contact role"],nextAction:["proxima accion","next action"],nextDate:["fecha de seguimiento","next date","fecha"],notes:["notas","notes","observaciones"]};
+const aliases:Record<CsvField,string[]>={companyLinkedin:["linkedin empresa","linkedin de la empresa","company linkedin"],companyInstagram:["instagram","instagram empresa","instagram de la empresa","company instagram"],name:["empresa","compania","company","name","nombre","razon social"],website:["sitio web","website","web","url"],industry:["rubro","industria","industry","sector"],country:["ubicacion","pais","country","location","ciudad"],source:["fuente","source","origen"],roles:["puestos de interes","puestos","roles"],stage:["etapa","stage","estado"],contactName:["contacto","nombre contacto","contact name"],email:["correo","email","mail"],linkedin:["linkedin","linkedin contacto","linkedin del contacto","contact linkedin"],phone:["telefono","phone","celular"],contactRole:["cargo del contacto","cargo","contact role"],nextAction:["proxima accion","next action"],nextDate:["fecha de seguimiento","next date","fecha"],notes:["notas","notes","observaciones"]};
 
 // Quoted separators, escaped quotes and multiline cells follow the CSV convention.
 export function parseCompanyCsv(raw:string):CsvTable{
@@ -47,7 +47,7 @@ export function prepareCompanyCsv(table:CsvTable,mapping:Partial<Record<CsvField
  const companies:CompanyLead[]=[],issues:{row:number;message:string}[]=[];let duplicates=0;
  table.rows.forEach((row,index)=>{try{
   const values=Object.fromEntries(csvFields.map(([field])=>[field,mapping[field]===undefined?"":(row[mapping[field]!]||"").trim()]));
-  const company=normalizeCompany({...values,id:"csv-"+index,stage:values.stage||"Por investigar",contacts:[{name:values.contactName,role:values.contactRole,email:values.email,phone:values.phone,linkedin:values.linkedin}]});
+  const company=normalizeCompany({...values,id:"csv-"+index,linkedin:values.companyLinkedin,instagram:values.companyInstagram,stage:values.stage||"Por investigar",contacts:[{name:values.contactName,role:values.contactRole,email:values.email,phone:values.phone,linkedin:values.linkedin}]});
   if([...existing,...companies].some(c=>isDuplicateCompany(c,company))){duplicates++;return;}
   companies.push(company);
  }catch(e){issues.push({row:index+2,message:e instanceof Error?e.message:"Fila inválida."});}});
