@@ -26,3 +26,5 @@ test("CSV batch persists once with profile preservation and rejects invalid batc
 });
 
 
+
+test("deletion preserves profile keys and rejects stale versions",async()=>{const f=fixture();await assert.rejects(f.store.saveCompanyPipeline("owner-a",{version:"stale",action:"delete",id:"example-1"}),/cambiaron/);assert.equal(f.read(),null);});

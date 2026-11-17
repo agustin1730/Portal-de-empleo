@@ -1,0 +1,9 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import vm from "node:vm";
+import {resolveTheme,validTheme} from "../lib/theme.ts";
+import {changeCompany,normalizeCompany} from "../lib/company-pipeline-data.ts";
+test("deleting a lead removes only its id without mutating other companies",()=>{const a=normalizeCompany({id:"a",name:"A",notes:"Keep"}),b=normalizeCompany({id:"b",name:"B"});const rows=[a,b];assert.deepEqual(changeCompany(rows,{action:"delete",id:"b"}),[a]);assert.equal(rows.length,2);assert.equal(a.notes,"Keep");assert.throws(()=>changeCompany(rows,{action:"delete",id:"missing"}));assert.throws(()=>changeCompany(rows,{action:"delete",id:"bad/id"}));});
+test("theme resolution accepts only known preferences",()=>{assert.equal(validTheme("unknown"),"system");assert.equal(resolveTheme("dark",false),"dark");assert.equal(resolveTheme("light",true),"light");assert.equal(resolveTheme("system",true),"dark");});
+test("prepaint theme handles saved preference, system changes and blocked storage",()=>{const source=fs.readFileSync(new URL("../app/layout.tsx",import.meta.url),"utf8"),script=JSON.parse(source.match(/__html:("(?:[^"\\]|\\.)*")/)![1]);for(const blocked of [false,true]){const dataset:any={},events:any={};let mediaChange!:()=>void;const media={matches:true,addEventListener(_name:string,fn:()=>void){mediaChange=fn;}};vm.runInNewContext(script,{document:{documentElement:{dataset}},localStorage:{getItem(){if(blocked)throw Error("Blocked");return "light";}},matchMedia:()=>media,addEventListener:(name:string,fn:any)=>{events[name]=fn;}});assert.equal(dataset.theme,blocked?"dark":"light");events.storage({key:"mi-busqueda:theme",newValue:"system"});media.matches=false;mediaChange();assert.equal(dataset.theme,"light");events.storage({key:"mi-busqueda:theme",newValue:"dark"});assert.equal(dataset.theme,"dark");}});

@@ -19,7 +19,7 @@ export function normalizeCompany(input:unknown):CompanyLead{
  return {id,name,stage:stage as CompanyStage,website,linkedin:normalizeCompanyLink(str(r.linkedin,2000),"linkedin"),instagram:normalizeCompanyLink(str(r.instagram,2000),"instagram"),industry:str(r.industry,200),country:str(r.country,200),source:str(r.source,200),roles:str(r.roles,300),notes:str(r.notes,12000),nextAction,nextDate,contacts,message:str(r.message,5000),activity:[]};
 }
 export function changeCompany(rows:CompanyLead[],input:unknown,now=new Date().toISOString()){
- if(!input||typeof input!=="object")throw new Error("Acción inválida.");const body=input as Record<string,unknown>;const lead=normalizeCompany(body.company),old=rows.find(r=>r.id===lead.id);
+ if(!input||typeof input!=="object")throw new Error("Acción inválida.");const body=input as Record<string,unknown>;if(body.action==="delete"){const id=str(body.id,80);if(!/^[a-zA-Z0-9_-]{1,80}$/.test(id)||!rows.some(r=>r.id===id))throw new Error("La empresa ya no existe. Recargá los datos.");return rows.filter(r=>r.id!==id);}const lead=normalizeCompany(body.company),old=rows.find(r=>r.id===lead.id);
  if(body.action!=="save"&&body.action!=="complete")throw new Error("Acción inválida.");if(body.action==="complete"&&(!old||!old.nextAction&&!old.nextDate))throw new Error("No hay una acción pendiente.");
  if(!old&&rows.length>=200)throw new Error("Máximo 200 empresas en esta versión.");
  const event=body.action==="complete"?"Acción realizada: "+(old!.nextAction||"Seguimiento"):!old?"Empresa agregada":old.stage!==lead.stage?"Etapa: "+lead.stage:"Datos actualizados";
