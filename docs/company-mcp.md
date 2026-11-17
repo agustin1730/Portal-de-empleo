@@ -112,3 +112,8 @@ Con confirmación explícita al momento de la acción, se activó OAuth Server e
 ### 2026-11-17 — Cliente dedicado configurado
 
 OAuth Server activo, Site URL de producción comprobado tras navegación y hook company_connector_access_token ENABLED. Se creó desde el panel un cliente público manual con PKCE, usando exclusivamente el callback específico aportado por el usuario. Registro dinámico continúa desactivado. Cliente habilitado en company_connector_private.oauth_clients y variable Vercel MCP_COMPANY_CLIENT_IDS de producción; no se creó ni se compartió un client secret. Compatibilidad del hook con client_id anidado en claims cubierta por migración company_oauth_claim_binding aplicada y prueba SQL/PGlite aprobada. Falta autorización e inicio de sesión del propietario desde ChatGPT y verificación real de herramientas/renovación. No declarar instalado hasta observar ese resultado.
+
+
+### 1.0.1 — Compatibilidad del identificador de autorización
+
+La prueba HTTP real detectó que Supabase entrega authorization_id como identificador opaco de 32 caracteres, no necesariamente UUID con guiones. Se corrige la validación a 16–128 caracteres URL-safe, manteniendo encodeURIComponent y rechazo de rutas/URLs; aplica a consentimiento y retorno del login. Pruebas agregadas con datos ficticios. No se amplían permisos ni clientes.

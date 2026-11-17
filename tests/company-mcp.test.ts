@@ -39,6 +39,6 @@ test("malformed requests, oversized payloads, invalid ids and unsupported protoc
 });
 test("OAuth clients and browser origins are fail-closed; authorization IDs cannot become redirects",()=>{
  assert.equal(connectorClientAllowed("client",""),false);assert.equal(connectorClientAllowed("client"," client,other "),true);assert.equal(connectorClientAllowed("other","client"),false);
- assert.equal(authorizationId("https://evil.test"),null);assert.equal(authorizationId("00000000-0000-4000-8000-000000000001"),"00000000-0000-4000-8000-000000000001");
+ assert.equal(authorizationId("https://evil.test"),null);assert.equal(authorizationId("a".repeat(32)),"a".repeat(32));assert.equal(authorizationId("x".repeat(129)),null);assert.equal(authorizationId("../oauth/consent"),null);assert.equal(authorizationId("00000000-0000-4000-8000-000000000001"),"00000000-0000-4000-8000-000000000001");
  assert.equal(connectorOriginAllowed(null,"https://portal.test"),true);assert.equal(connectorOriginAllowed("https://evil.test","https://portal.test",""),false);assert.equal(connectorOriginAllowed("https://chatgpt.com","https://portal.test","https://chatgpt.com"),true);
 });
