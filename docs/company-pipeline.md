@@ -59,3 +59,10 @@ Cada contacto suma LinkedIn opcional, con normalización HTTPS cuando falta prot
 
 Ningún campo visible es obligatorio para guardar una ficha, incluido nombre de empresa. Nombre vacío se conserva como tal y la interfaz muestra Sin nombre sin inventar un nombre persistido. Etapa conserva su valor inicial por defecto. CSV permite no mapear Empresa, aunque exige seleccionar alguna columna para evitar una importación sin datos asociados. Se mantienen validaciones de formato cuando hay datos: enlaces HTTP/HTTPS de LinkedIn sin credenciales, correo válido y fechas reales. No cambian el límite de registros, privacidad ni control de versión.
 
+
+## Movimiento fluido del Kanban (2026-11-17)
+
+Arrastre HTML nativo con vista previa de tarjeta, origen atenuado, resaltado de columna y marcador de destino. Auto-scroll horizontal por requestAnimationFrame cerca de los bordes. Al soltar se actualiza la etapa visualmente de inmediato, se guarda por la API existente y se revierte al estado previo si falla; el servidor sigue confirmando el guardado real. No altera el orden persistido dentro de una columna.
+
+Animaciones FLIP con Web Animations sobre transform, duración 260 ms, para cambio de columna y desplazamiento de otras tarjetas. Coordenadas relativas al tablero para soportar scroll horizontal. Respeta prefers-reduced-motion, sin animación de movimiento en ese modo. Edición por formulario/tabla se conserva como alternativa al arrastre. No se agregan bibliotecas ni cambios de datos/API. La prueba company-pipeline-drag.test.ts verifica actualización inmediata, conservación de notas/contactos y reversión cuando falla el guardado; no sustituye una prueba visual en navegador.
+
