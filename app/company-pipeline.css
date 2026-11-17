@@ -14,3 +14,25 @@
 .company-network-icons-only a{font-size:0;line-height:0}.company-network-icons-only svg{width:18px;height:18px}
 
 .crm-select-visible{display:flex;align-items:center;justify-content:center;padding:8px}.crm-select-visible label{display:flex}.crm-select-visible input,.crm-selection-cell input{width:16px;height:16px;accent-color:var(--green);cursor:pointer}.crm-selection-cell{width:38px!important;min-width:38px}.crm-selection-cell input:focus-visible,.crm-select-visible input:focus-visible{outline:2px solid var(--green);outline-offset:3px}.company-card{position:relative}.company-card-selection{position:absolute;top:13px;left:10px;padding:6px;z-index:2}.company-card .company-open{padding-left:42px}.company-card[data-selected=true],.application-card[data-selected=true]{border-color:var(--green);box-shadow:inset 0 0 0 1px var(--green)}.crm-table tr[data-selected=true]{background:var(--light-green)}
+
+/* Keep company stages on one horizontal track, regardless of shared CRM breakpoints. */
+.crm-board.company-board {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(300px, 1fr);
+  grid-template-rows: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--green) var(--border);
+  padding-bottom: 14px;
+}
+.crm-board.company-board::-webkit-scrollbar { height: 8px; }
+.crm-board.company-board::-webkit-scrollbar-track { background: var(--border); border-radius: 8px; }
+.crm-board.company-board::-webkit-scrollbar-thumb { background: var(--green); border-radius: 8px; }
+@media (max-width: 620px) {
+  .crm-board.company-board { grid-auto-columns: minmax(260px, 1fr); }
+}
