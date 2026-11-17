@@ -7,6 +7,7 @@ import "./company-pipeline.css";
 import {House,BriefcaseBusiness, LayoutGrid, List, Plus, Search, MapPin, CalendarDays, ArrowUpRight, X, Mail, Phone, ChevronRight, ShieldCheck, Sparkles, Trash2, FileText} from "lucide-react";
 import "./crm.css";
 import CompanyPipeline from "./company-pipeline";
+import CompanyContactsView from "./company-contacts-view";
 
 const stages = ["Postulado", "Contactado", "Entrevista", "Oferta", "Descartado"];
 type Application = {id:string; company:string; position:string; location:string; date:string; stage:string; contact:string; email:string; phone:string; notes:string;url?:string};
@@ -15,11 +16,12 @@ const today=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/Argentina/Bue
 const dateLabel=(date:string)=>!date?"Sin fecha":new Date(date+"T12:00:00").toLocaleDateString("es-AR",{day:"2-digit",month:"short"});
 
 export default function Crm({displayName}:{displayName:string}){
-  const [area,setArea]=useState<"prospecting"|"applications">("applications");
+  const [area,setArea]=useState<"prospecting"|"applications"|"contacts">("applications");
   const [jobs,setJobs]=useState<Application[]>([]),[view,setView]=useState("board"),[query,setQuery]=useState(""),[filter,setFilter]=useState("Todas las etapas"),[draft,setDraft]=useState<Application|null>(null);
   const [trashCount,setTrashCount]=useState(0);
   const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
   const [dragged,setDragged]=useState<string|null>(null),[over,setOver]=useState<string|null>(null);const board=useRef<HTMLDivElement>(null),positions=useRef(new Map<string,DOMRect>()),pointer=useRef<number|null>(null),saving=useRef(false);
+  const [companyToOpen,setCompanyToOpen]=useState<string|undefined>(undefined);
   const dialog=useRef<HTMLDialogElement>(null);
   useEffect(()=>{if(draft)dialog.current?.showModal();else dialog.current?.close();},[draft]);
   const filtered=jobs.filter(j=>(filter==="Todas las etapas"||j.stage===filter)&&(j.company+" "+j.position+" "+j.location).toLocaleLowerCase().includes(query.toLocaleLowerCase()));
@@ -44,8 +46,8 @@ export default function Crm({displayName}:{displayName:string}){
     <aside className="sidebar"><a href="/" className="brand"><span className="brand-icon"><BriefcaseBusiness size={21}/></span>mi búsqueda<span className="brand-dot">.</span></a><MainNav active="crm" counts={{crm:jobs.length,basura:trashCount}}/><div className="crm-sidebar-note"><Sparkles size={19}/><strong>Tu próximo paso, más cerca.</strong><p>Cada postulación es una nueva posibilidad.</p></div><div className="sidebar-bottom"><form action="/auth/signout" method="post"><button className="text-button">Cerrar sesión</button></form><div className="profile-button"><span className="avatar">{displayName.split(" ").slice(0,2).map(s=>s[0]).join("")}</span><div><strong>{displayName}</strong></div></div></div></aside>
     <div className="main-shell">
     <main className="crm-main"><div className="page-heading"><div><h1>CRM<span className="crm-title-dot">.</span></h1></div>{area==="applications"&&<button className="button primary" onClick={()=>setDraft({id:crypto.randomUUID(),company:"",position:"",location:"",date:today(),stage:"Postulado",contact:"",email:"",phone:"",notes:""})}><Plus size={17}/>Nueva postulación</button>}</div>
-<div className="crm-area-tabs" role="tablist" aria-label="Vista del CRM"><button role="tab" aria-selected={area==="prospecting"} onClick={()=>setArea("prospecting")}>Empresas</button><button role="tab" aria-selected={area==="applications"} onClick={()=>setArea("applications")}>Postulaciones</button></div>
-{area==="prospecting"?<CompanyPipeline/>:<>
+<div className="crm-area-tabs" role="tablist" aria-label="Vista del CRM"><button role="tab" aria-selected={area==="prospecting"} onClick={()=>setArea("prospecting")}>Empresas</button><button role="tab" aria-selected={area==="applications"} onClick={()=>setArea("applications")}>Postulaciones</button><button role="tab" aria-selected={area==="contacts"} onClick={()=>setArea("contacts")}>Contactos</button></div>
+{area==="contacts"?<CompanyContactsView onOpenCompany={id=>{setCompanyToOpen(id);setArea("prospecting");}}/>:area==="prospecting"?<CompanyPipeline initialCompanyId={companyToOpen}/>:<>
     <div className="crm-stats">{[{label:"Postulaciones",value:jobs.length,foot:"Tu búsqueda en un solo lugar"},{label:"Procesos activos",value:jobs.filter(j=>!["Rechazado","Oferta"].includes(j.stage)).length,foot:"Oportunidades en movimiento"},{label:"En entrevista",value:jobs.filter(j=>j.stage==="Entrevista").length,foot:"Un paso más cerca"},{label:"Ofertas recibidas",value:jobs.filter(j=>j.stage==="Oferta").length,foot:"Nuevos caminos por elegir"}].map((s,i)=><div key={s.label}><span>{s.label}<span className={"crm-stat-dot tone-"+i}/></span><strong>{s.value.toString().padStart(2,"0")}</strong><small>{s.foot}</small></div>)}</div>
     <div className="crm-collection"><div><h2>Tu recorrido</h2></div><div className="crm-switch" aria-label="Vista del CRM"><button className={view==="board"?"chosen":""} aria-pressed={view==="board"} onClick={()=>setView("board")}><LayoutGrid size={15}/>Tablero</button><button className={view==="table"?"chosen":""} aria-pressed={view==="table"} onClick={()=>setView("table")}><List size={16}/>Tabla</button></div></div>
     <div className="filterbar crm-filters"><label className="search-box"><Search size={16}/><input aria-label="Buscar postulaciones" placeholder="Buscar compañía, puesto o ubicación…" value={query} onChange={e=>setQuery(e.target.value)}/></label><select aria-label="Filtrar por etapa" value={filter} onChange={e=>setFilter(e.target.value)}><option>Todas las etapas</option>{stages.filter(s=>s!=="Descartado").map(s=><option key={s}>{s}</option>)}</select><span className="crm-results">{filtered.length} postulaciones</span></div>

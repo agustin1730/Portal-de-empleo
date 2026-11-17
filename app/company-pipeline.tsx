@@ -12,7 +12,7 @@ import {exportCompaniesCsv,selectedCompanies,companyExportFilename} from "../lib
 const today=()=>followUpDay();
 
 const emptyCompany=(stage:CompanyStage):CompanyLead=>({id:crypto.randomUUID(),name:"",industry:"",country:"",website:"",source:"",roles:"",stage,contacts:[],notes:"",nextAction:"",nextDate:"",message:"",activity:[]});
-export default function CompanyPipeline(){
+export default function CompanyPipeline({initialCompanyId}:{initialCompanyId?:string}={}){
  const board=useRef<HTMLDivElement>(null),positions=useRef(new Map<string,DOMRect>()),dragPointer=useRef<number|null>(null);
  const [dragged,setDragged]=useState<string|null>(null),[over,setOver]=useState<CompanyStage|null>(null);
  const [view,setView]=useState<"board"|"table">("board");
@@ -22,6 +22,7 @@ export default function CompanyPipeline(){
  async function deleteCompany(){if(!draft||busy||loading)return;const saved=companies.find(c=>c.id===draft.id);if(!saved)return;if(!window.confirm('¿Eliminar '+(saved.name||'esta empresa')+' de Empresas? Se eliminarán sus contactos, notas y seguimiento. No se puede deshacer.'))return;setBusy(true);setError('');try{const response=await fetch('/api/companies',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',id:saved.id,version})}),data=await response.json();if(!response.ok)throw new Error(data.error||'No se pudo eliminar.');setCompanies(data.companies);setVersion(data.version);setSelected(previous=>{const next=new Set(previous);next.delete(saved.id);return next;});setDraft(null);setNotice('Empresa eliminada');}catch(e){setError(e instanceof Error?e.message:'No se pudo eliminar.');}finally{setBusy(false);}}
   async function load(){setLoading(true);try{const r=await fetch("/api/companies",{cache:"no-store"}),d=await r.json();if(!r.ok)throw new Error(d.error);setCompanies(d.companies);setVersion(d.version);setError("");}catch(e){setError(e instanceof Error?e.message:"No se pudo cargar.");}finally{setLoading(false);}}
  useEffect(()=>{void load();},[]);
+ useEffect(()=>{if(!loading&&initialCompanyId){const company=companies.find(c=>c.id===initialCompanyId);if(company)open(company);}},[initialCompanyId,loading]);
  const editing=!!draft;
  useEffect(()=>{if(editing)dialog.current?.showModal();else dialog.current?.close();},[editing]);
  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(""),4000);return()=>clearTimeout(timer);},[notice]);
