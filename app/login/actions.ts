@@ -3,15 +3,17 @@ import {redirect} from "next/navigation";
 import {createClient} from "../../lib/supabase/server";
 import {isConfigured} from "../../lib/config";
 import {authSiteUrl,ownerEmailMatches,validNewPassword} from "../../lib/auth-flow";
+import {authorizationId} from "../../lib/company-connector-auth";
 export async function signIn(form:FormData){
  if(!isConfigured())redirect("/");
+ const oauthId=authorizationId(form.get("authorization_id")),oauthQuery=oauthId?"&authorization_id="+encodeURIComponent(oauthId):"";
  const email=String(form.get("email")||"").trim(),password=String(form.get("password")||"");
- if(!ownerEmailMatches(email))redirect("/login?error=invalid");
+ if(!ownerEmailMatches(email))redirect("/login?error=invalid"+oauthQuery);
  const client=await createClient();
  const {error}=await client.auth.signInWithPassword({email,password});
- if(error?.code==="email_not_confirmed")redirect("/login?mode=confirm&error=unconfirmed");
- if(error)redirect("/login?error=invalid");
- redirect("/");
+ if(error?.code==="email_not_confirmed")redirect("/login?mode=confirm&error=unconfirmed"+oauthQuery);
+ if(error)redirect("/login?error=invalid"+oauthQuery);
+ redirect(oauthId?"/oauth/consent?authorization_id="+encodeURIComponent(oauthId):"/");
 }
 export async function signUp(form:FormData){
  if(!isConfigured())redirect("/");

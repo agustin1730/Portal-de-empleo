@@ -4,6 +4,7 @@ import AuthSubmit from "./submit";
 import {getCurrentUser} from "../../lib/auth";
 import {isConfigured} from "../../lib/config";
 import {redirect} from "next/navigation";
+import {authorizationId} from "../../lib/company-connector-auth";
 export const dynamic="force-dynamic";
 const errors:Record<string,string>={
  invalid:"No pudimos iniciar sesión. Revisá tus credenciales.",
@@ -17,10 +18,11 @@ const errors:Record<string,string>={
  unconfirmed:"Primero confirmá tu correo. Podés solicitar un nuevo enlace acá.",
  confirmation:"El enlace venció o se abrió en otro navegador. Si ya confirmaste tu correo, intentá iniciar sesión. Si no, solicitá otro enlace.",
 };
-export default async function Login({searchParams}:{searchParams:Promise<{error?:string;mode?:string;notice?:string}>}){
+export default async function Login({searchParams}:{searchParams:Promise<{error?:string;mode?:string;notice?:string;authorization_id?:string}>}){
  if(!isConfigured())redirect("/");
- if(await getCurrentUser())redirect("/");
- const {error,mode,notice}=await searchParams;
+ const params=await searchParams,oauthId=authorizationId(params.authorization_id);
+ if(await getCurrentUser())redirect(oauthId?"/oauth/consent?authorization_id="+encodeURIComponent(oauthId):"/");
+ const {error,mode,notice}=params;
  const screen=mode==="signup"?"signup":mode==="recover"?"recover":mode==="confirm"?"confirm":"signin";
  const config={
   signin:{title:"Volvé a tu búsqueda.",intro:"Ingresá para revisar tus oportunidades y continuar donde lo dejaste.",action:signIn,button:"Entrar a mi búsqueda"},
@@ -32,6 +34,7 @@ export default async function Login({searchParams}:{searchParams:Promise<{error?
  return <main className="setup-screen"><section className="setup-card login-card"><div className="brand-icon"><BriefcaseBusiness size={23}/></div><p className="eyebrow">TU ESPACIO PERSONAL</p><h1>{config.title}</h1><p>{config.intro}</p>
  {message&&<div className="auth-notice" role="status">{message}</div>}
  <form action={config.action} className="add-form">
+ {screen==="signin"&&oauthId&&<input type="hidden" name="authorization_id" value={oauthId}/>}
  <label>Correo electrónico<input name="email" type="email" autoComplete="username" required maxLength={254}/></label>
  {(screen==="signin"||screen==="signup")&&<label>{screen==="signup"?"Elegí tu contraseña":"Contraseña"}<input name="password" type="password" autoComplete={screen==="signup"?"new-password":"current-password"} required minLength={screen==="signup"?12:1} maxLength={128}/>{screen==="signup"&&<small>Entre 12 y 128 caracteres.</small>}</label>}
  {screen==="signup"&&<label>Confirmar contraseña<input name="confirmation" type="password" autoComplete="new-password" required minLength={12} maxLength={128}/></label>}
