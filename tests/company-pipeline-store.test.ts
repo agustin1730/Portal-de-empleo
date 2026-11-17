@@ -21,7 +21,8 @@ test("stale and racing profile saves never overwrite data",async()=>{
 });
 test("CSV batch persists once with profile preservation and rejects invalid batches atomically",async()=>{
  const f=fixture();const result=await f.store.saveCompanyPipeline("owner-a",{version:f.original.updated_at,action:"import",companies:[company,{...company,id:"duplicate"},{id:"second",name:"Other"}]});assert.equal(result.imported,2);assert.equal(result.duplicates,1);assert.equal(f.read().data.crm_prospects.length,2);assert.equal(f.read().data.summary,"Preserved");assert.deepEqual(f.owners(),["owner-a","owner-a"]);
- const invalid=fixture();await assert.rejects(invalid.store.saveCompanyPipeline("owner-a",{version:invalid.original.updated_at,action:"import",companies:[company,{id:"bad",name:""}]}));assert.equal(invalid.read(),null);
+ const invalid=fixture();await assert.rejects(invalid.store.saveCompanyPipeline("owner-a",{version:invalid.original.updated_at,action:"import",companies:[company,{id:"bad",name:"",stage:"invalid"}]}));assert.equal(invalid.read(),null);
  const stale=fixture();await assert.rejects(stale.store.saveCompanyPipeline("owner-a",{version:"old",action:"import",companies:[company]}),/cambiaron/);assert.equal(stale.read(),null);
 });
+
 

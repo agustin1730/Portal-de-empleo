@@ -22,7 +22,8 @@ test("mapping is explicit, validates rows and omits duplicates without replacing
 test("batch imports are bounded, deduplicated and never mutate source rows on failure",()=>{
  const existing=normalizeCompany({id:"existing",name:"Acme",notes:"Keep"});
  const result=importCompanyBatch([existing],[{id:"new",name:"New"},{id:"duplicate",name:"Acme"}]);assert.equal(result.imported,1);assert.equal(result.duplicates,1);assert.equal(result.companies.find(c=>c.id==="existing")!.notes,"Keep");
- const source=[existing];assert.throws(()=>importCompanyBatch(source,[{id:"new",name:"New"},{id:"bad",name:""}]));assert.equal(source.length,1);
+ const source=[existing];assert.throws(()=>importCompanyBatch(source,[{id:"new",name:"New"},{id:"bad",name:"",stage:"invalid"}]));assert.equal(source.length,1);
  assert.throws(()=>importCompanyBatch(source,[{id:"existing",name:"Different"}]));assert.throws(()=>importCompanyBatch([],[]));
  const full=Array.from({length:200},(_,i)=>normalizeCompany({id:"c"+i,name:"Company "+i}));assert.throws(()=>importCompanyBatch(full,[{id:"extra",name:"Extra"}]));assert.equal(full.length,200);
 });
+

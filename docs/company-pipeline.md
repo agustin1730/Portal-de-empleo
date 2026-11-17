@@ -52,3 +52,10 @@ Tarjetas con rubro y país como etiquetas de color suave, sitio web y próxima a
 
 Inter sustituye DM Sans/Manrope como tipografía de texto de la app, con carga Google Fonts y fallback Arial; no se asegura identidad exacta con una fuente de imagen generada. Iconos Lucide existentes, consistentes con etiquetas y enlaces. No se agregan dependencias, APIs ni migraciones. El estilo global cubre encabezados y componentes con definiciones tipográficas anteriores sin alterar su distribución.
 
+
+## Contactos LinkedIn y campos opcionales (2026-11-17)
+
+Cada contacto suma LinkedIn opcional, con normalización HTTPS cuando falta protocolo y enlace directo desde el editor. Un contacto con solo LinkedIn se conserva; los contactos anteriores sin esta propiedad siguen funcionando. El CSV reconoce LinkedIn / LinkedIn del contacto / contact linkedin.
+
+Ningún campo visible es obligatorio para guardar una ficha, incluido nombre de empresa. Nombre vacío se conserva como tal y la interfaz muestra Sin nombre sin inventar un nombre persistido. Etapa conserva su valor inicial por defecto. CSV permite no mapear Empresa, aunque exige seleccionar alguna columna para evitar una importación sin datos asociados. Se mantienen validaciones de formato cuando hay datos: enlaces HTTP/HTTPS de LinkedIn sin credenciales, correo válido y fechas reales. No cambian el límite de registros, privacidad ni control de versión.
+

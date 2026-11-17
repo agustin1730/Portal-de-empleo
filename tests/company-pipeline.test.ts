@@ -27,3 +27,8 @@ test("minimal companies, partial contacts and independent follow-up fields are a
 test("date shortcuts follow Argentina time and calendar rollover",()=>{
  const now=new Date("2026-11-17T01:00:00Z");assert.equal(followUpDay(0,now),"2026-11-16");assert.equal(followUpDay(1,now),"2026-11-17");assert.equal(followUpDay(1,new Date("2026-12-31T23:30:00-03:00")),"2027-01-01");
 });
+test("all visible fields are optional and a LinkedIn-only contact survives saves",()=>{
+ const lead=normalizeCompany({id:"optional",contacts:[{linkedin:"www.linkedin.com/in/example"}]});assert.equal(lead.name,"");assert.equal(lead.contacts[0].linkedin,"https://www.linkedin.com/in/example");
+ const rows=changeCompany([],{action:"save",company:lead});assert.equal(rows[0].contacts.length,1);assert.equal(normalizeCompany({id:"blank"}).name,"");
+ for(const linkedin of ["javascript:alert(1)","https://linkedin.com.evil.example/in/a","https://user:pass@linkedin.com/in/a","https://example.com"])assert.throws(()=>normalizeCompany({id:"bad-link",contacts:[{linkedin}]}));
+});

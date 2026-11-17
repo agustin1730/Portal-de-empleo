@@ -3,13 +3,13 @@ import {changeCompany,normalizeCompany,type CompanyLead} from "./company-pipelin
 export const csvFields=[
  ["name","Empresa"],["website","Sitio web"],["industry","Rubro"],["country","Ubicación"],
  ["source","Fuente"],["roles","Puestos de interés"],["stage","Etapa"],["contactName","Contacto"],
- ["email","Correo"],["phone","Teléfono"],["contactRole","Cargo del contacto"],
+ ["email","Correo"],["linkedin","LinkedIn del contacto"],["phone","Teléfono"],["contactRole","Cargo del contacto"],
  ["nextAction","Próxima acción"],["nextDate","Fecha de seguimiento"],["notes","Notas"],
 ] as const;
 export type CsvField=typeof csvFields[number][0];
 export type CsvTable={headers:string[];rows:string[][]};
 const key=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
-const aliases:Record<CsvField,string[]>={name:["empresa","compania","company","name","nombre","razon social"],website:["sitio web","website","web","url"],industry:["rubro","industria","industry","sector"],country:["ubicacion","pais","country","location","ciudad"],source:["fuente","source","origen"],roles:["puestos de interes","puestos","roles"],stage:["etapa","stage","estado"],contactName:["contacto","nombre contacto","contact name"],email:["correo","email","mail"],phone:["telefono","phone","celular"],contactRole:["cargo del contacto","cargo","contact role"],nextAction:["proxima accion","next action"],nextDate:["fecha de seguimiento","next date","fecha"],notes:["notas","notes","observaciones"]};
+const aliases:Record<CsvField,string[]>={name:["empresa","compania","company","name","nombre","razon social"],website:["sitio web","website","web","url"],industry:["rubro","industria","industry","sector"],country:["ubicacion","pais","country","location","ciudad"],source:["fuente","source","origen"],roles:["puestos de interes","puestos","roles"],stage:["etapa","stage","estado"],contactName:["contacto","nombre contacto","contact name"],email:["correo","email","mail"],linkedin:["linkedin","linkedin contacto","linkedin del contacto","contact linkedin"],phone:["telefono","phone","celular"],contactRole:["cargo del contacto","cargo","contact role"],nextAction:["proxima accion","next action"],nextDate:["fecha de seguimiento","next date","fecha"],notes:["notas","notes","observaciones"]};
 
 // Quoted separators, escaped quotes and multiline cells follow the CSV convention.
 export function parseCompanyCsv(raw:string):CsvTable{
@@ -42,12 +42,12 @@ function websiteKey(website:string){if(!website)return "";try{return new URL(web
 const companyNameKey=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^\p{L}\p{N}]/gu,"");
 export function isDuplicateCompany(a:CompanyLead,b:CompanyLead){const name=companyNameKey(a.name);return !!name&&name===companyNameKey(b.name)||!!websiteKey(a.website)&&websiteKey(a.website)===websiteKey(b.website);}
 export function prepareCompanyCsv(table:CsvTable,mapping:Partial<Record<CsvField,number>>,existing:CompanyLead[]){
- if(mapping.name===undefined)throw new Error("Elegí la columna Empresa.");
- const selected=Object.values(mapping);if(new Set(selected).size!==selected.length)throw new Error("Usá una columna diferente para cada campo.");
+
+ const selected=Object.values(mapping).filter((v):v is number=>v!==undefined);if(!selected.length)throw new Error("Elegí al menos una columna para importar.");if(new Set(selected).size!==selected.length)throw new Error("Usá una columna diferente para cada campo.");
  const companies:CompanyLead[]=[],issues:{row:number;message:string}[]=[];let duplicates=0;
  table.rows.forEach((row,index)=>{try{
   const values=Object.fromEntries(csvFields.map(([field])=>[field,mapping[field]===undefined?"":(row[mapping[field]!]||"").trim()]));
-  const company=normalizeCompany({...values,id:"csv-"+index,stage:values.stage||"Por investigar",contacts:[{name:values.contactName,role:values.contactRole,email:values.email,phone:values.phone}]});
+  const company=normalizeCompany({...values,id:"csv-"+index,stage:values.stage||"Por investigar",contacts:[{name:values.contactName,role:values.contactRole,email:values.email,phone:values.phone,linkedin:values.linkedin}]});
   if([...existing,...companies].some(c=>isDuplicateCompany(c,company))){duplicates++;return;}
   companies.push(company);
  }catch(e){issues.push({row:index+2,message:e instanceof Error?e.message:"Fila inválida."});}});
@@ -59,3 +59,4 @@ export function importCompanyBatch(existing:CompanyLead[],input:unknown){
  for(const item of input){const company=normalizeCompany(item);if(rows.some(c=>isDuplicateCompany(c,company))){duplicates++;continue;}if(rows.some(c=>c.id===company.id))throw new Error("Identificador repetido. Volvé a preparar el CSV.");rows=changeCompany(rows,{action:"save",company});imported++;}
  return {companies:rows,imported,duplicates};
 }
+
