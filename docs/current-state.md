@@ -16,3 +16,14 @@ El usuario eligió solo controles por sección, sin selección de empresas espec
 Validación previa: TypeScript y cuatro pruebas focalizadas aprobados en el repositorio de trabajo. La comprobación visual local no se completó porque el navegador no pudo acceder a localhost. Publicación solicitada por el usuario; estado final de compilación y alias se verifica después del commit.
 
 Lote aislado 1.1.1: build de producción y TypeScript aprobados; cuatro pruebas de CRM aprobadas antes de publicar. Sin migraciones ni cambios de credenciales.
+
+
+## 1.2 — Informes
+
+18/11/2026, Argentina. Sección independiente /?vista=informes en el menú lateral. Tabla con casillas, título, Tipo (Investigacion/Carta), Empresa y fecha. Tipo y relación de empresa se editan desde la fila; selector de empresas existentes con buscador y opción de quitar relación. Varios informes por empresa y documentos sin empresa. Editor Markdown con vista previa, importación .md como borrador revisable y descarga individual/selección combinada. Guardado explícito con versión por registro; conflictos mantienen el borrador. No genera ni envía cartas automáticamente.
+
+Migración reports_markdown aplicada mediante Supabase. public.reports con RLS por propietario, validación de relación y RPC de guardado con control de versión. Permisos nuevos reports_read/reports_write apagados por defecto y separados de los permisos legados research_read/research_write. No se modifica ninguna concesión existente. MCP suma list_reports/get_report/save_report, con comprobación de permisos en cada llamada y base; asociar una empresa desde OAuth requiere Empresas. Las investigaciones estructuradas anteriores conservan sus tablas y herramientas. Ver docs/reports.md.
+
+Validación: 109/109 pruebas aprobadas en lote aislado, build de producción y TypeScript aprobados. SQL de verificación en producción dentro de transacción revertida confirma guardado, cambio/quita de empresa, rechazo de versión desactualizada y OAuth sin acceso nuevo; cero informes de prueba persistidos. Tabla con RLS, anon sin SELECT y authenticated sin DELETE. Advisors sin avisos nuevos frente al estado previo. Vista previa Markdown probada contra HTML, enlaces ejecutables, credenciales en enlaces e imágenes remotas; enlaces permitidos solo HTTP(S). Revisión de componentes según react-best-practices. Servidor local devolvió 200 en la vista de prueba, pero la herramienta de navegador agotó el tiempo y no permitió inspección visual; fixture temporal eliminada y ausente del build. No se verificó UI autenticada con la sesión real del propietario.
+
+Usuario autorizó implementar y desplegar. El estado final de Vercel se verifica después de publicar este commit. Sin nuevas credenciales ni APIs de pago.

@@ -1,3 +1,4 @@
+import {listReports,getReport,saveReport} from "../../../lib/reports-store";
 import {getCurrentUser} from "../../../lib/auth";
 import {authSiteUrl} from "../../../lib/auth-flow";
 import {connectorResourceAllowed,connectorClientAllowed,connectorOriginAllowed} from "../../../lib/company-connector-auth";
@@ -13,7 +14,7 @@ export async function POST(request:Request) {
   if(!request.headers.get("authorization")?.startsWith("Bearer "))return unauthorized();
   const user=await getCurrentUser({allowOAuth:true});
   if(!user || (!connectorClientAllowed(user.oauthClientId)||!connectorResourceAllowed(user.oauthResource,authSiteUrl())))return unauthorized();
-  return companyMcpResponse(request,{companies:readConnectorCompanies,research:readResearch,save:saveResearch,permissions:effectivePermissions,contacts:()=>readConnectorSection("contacts"),applications:()=>readConnectorSection("applications"),profile:()=>readConnectorSection("profile")});
+  return companyMcpResponse(request,{reports:listReports,report:getReport,saveReport,companies:readConnectorCompanies,research:readResearch,save:saveResearch,permissions:effectivePermissions,contacts:()=>readConnectorSection("contacts"),applications:()=>readConnectorSection("applications"),profile:()=>readConnectorSection("profile")});
 }
 export async function GET(request:Request) {
   if(!connectorOriginAllowed(request.headers.get("origin"),authSiteUrl()))return new Response(null,{status:403});
