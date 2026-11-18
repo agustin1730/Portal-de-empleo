@@ -27,6 +27,7 @@ export class ReportAutosave{
   this.emit();return this.running;
  }
  async flush():Promise<boolean>{this.cancel();if(this.running){if(!await this.running)return false;}if(this.blocked||!this.accepted)return false;if(!this.state().dirty)return true;const ok=await this.saveOnce();if(!ok)return false;return this.state().dirty?this.flush():true;}
+ replace(saved:Report){if(this.running||this.state().dirty)throw Error("Hay cambios pendientes.");this.cancel();this.draft=inputOf(saved);this.version=saved.updated_at;this.acknowledged=fingerprint(this.draft);this.accepted=true;this.attempted=null;this.blocked=false;this.error="";this.status="saved";this.emit();}
  async accept(){this.accepted=true;if(!this.version)this.acknowledged="";return this.flush();}
  async retry():Promise<boolean>{
   if(this.running)return this.flush();
